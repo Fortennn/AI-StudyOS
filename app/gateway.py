@@ -2,6 +2,7 @@ import asyncio
 from typing import Dict, Any
 from app.providers.base import LLMProvider, ProviderError
 from app.providers.mock import MockProvider
+from app.providers.gemini import GeminiProvider
 from app.settings import Settings
 from app.telemetry import logger
 
@@ -19,9 +20,14 @@ class LLMGateway:
                     failure_rate=settings.mock_failure_rate,
                     delay_ms=settings.mock_delay_ms
                 )
+            elif settings.llm_provider == "gemini":
+                self.provider = GeminiProvider(
+                    api_key=settings.llm_api_key,
+                    model=settings.llm_model,
+                    timeout_s=settings.llm_timeout_s
+                )
             else:
-                # Real provider will be added in future releases
-                raise NotImplementedError(f"Provider '{settings.llm_provider}' will be implemented in future releases")
+                raise NotImplementedError(f"Provider '{settings.llm_provider}' is not supported. Use 'mock' or 'gemini'.")
 
     async def generate_study_kit(self, prompt: str, topic: str, card_count: int, quiz_count: int) -> Dict[str, Any]:
         logger.info(f"Gateway dispatching request to provider '{self.settings.llm_provider}' (model: {self.settings.llm_model})")

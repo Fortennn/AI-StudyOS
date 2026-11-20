@@ -1,7 +1,7 @@
 import time
 import uuid
 from typing import List
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
@@ -14,6 +14,7 @@ from app.gateway import LLMGateway
 from app.orchestration import StudyOrchestrator
 from app.service import StudyService
 from app.providers.base import ProviderError
+from app.extractor import extract_text_from_file
 
 # Initialize core dependencies
 settings = get_settings()
@@ -119,6 +120,63 @@ async def get_health():
         },
         uptime_s=uptime
     )
+
+@app.post("/api/upload")
+async def upload_document(file: UploadFile = File(...)):
+    """Extracts text from uploaded PDF, DOCX, or TXT file."""
+    req_id = request_id_ctx.get()
+    logger.info(f"Received file upload: '{file.filename}' (content_type: {file.content_type})")
+    
+    try:
+        content = await file.read()
+        if len(content) > 15 * 1024 * 1024: # 15 MB limit
+            return JSONResponse(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                content=ErrorResponse(
+                    error=ErrorDetail(
+                        kind="file_too_large",
+                        message="Розмір файлу перевищує ліміт 15 МБ.",
+                        retryable=False,
+                        request_id=req_id
+                    )
+                ).model_dump()
+            )
+        
+        extracted_text, suggested_topic = extract_text_from_file(file.filename, content)
+        logger.info(f"Successfully extracted {len(extracted_text)} characters from '{file.filename}'")
+        
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "char_count": len(extracted_text),
+            "suggested_topic": suggested_topic,
+            "text": extracted_text
+        }
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    kind="extraction_error",
+                    message=str(ve),
+                    retryable=False,
+                    request_id=req_id
+                )
+            ).model_dump()
+        )
+    except Exception as e:
+        logger.error(f"Failed to process file upload: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    kind="upload_failed",
+                    message=f"Помилка при зчитуванні файлу: {str(e)}",
+                    retryable=False,
+                    request_id=req_id
+                )
+            ).model_dump()
+        )
 
 @app.post("/api/generate", response_model=StudyKitResponse)
 async def generate_kit(payload: StudyRequest):

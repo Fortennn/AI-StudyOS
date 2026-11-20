@@ -7,6 +7,8 @@ class StudyRequest(BaseModel):
     topic: Optional[str] = Field(default="Загальна тема", description="Назва теми або предмету")
     card_count: int = Field(default=5, ge=1, le=20, description="Кількість флеш-карток")
     quiz_count: int = Field(default=5, ge=1, le=20, description="Кількість питань тесту")
+    provider: Optional[str] = Field(default=None, description="Опціональне перекриття провайдера (mock або gemini)")
+    api_key: Optional[str] = Field(default=None, description="Опціональний API ключ для Gemini")
 
 # --- Structured Output / Domain Models ---
 class StudySummary(BaseModel):
