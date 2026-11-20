@@ -3,10 +3,10 @@ from pydantic import BaseModel, Field
 
 # --- Input Models ---
 class StudyRequest(BaseModel):
-    text: str = Field(..., min_length=10, max_length=30000, description="Текст конспекту або лекції для обробки")
+    text: str = Field(..., min_length=10, max_length=50000, description="Текст конспекту або лекції для обробки")
     topic: Optional[str] = Field(default="Загальна тема", description="Назва теми або предмету")
-    card_count: int = Field(default=5, ge=1, le=20, description="Кількість флеш-карток")
-    quiz_count: int = Field(default=5, ge=1, le=20, description="Кількість питань тесту")
+    card_count: int = Field(default=5, ge=0, le=30, description="Кількість флеш-карток (0 = авто)")
+    quiz_count: int = Field(default=5, ge=0, le=25, description="Кількість питань тесту (0 = авто)")
     provider: Optional[str] = Field(default=None, description="Опціональне перекриття провайдера (mock або gemini)")
     api_key: Optional[str] = Field(default=None, description="Опціональний API ключ для Gemini")
 

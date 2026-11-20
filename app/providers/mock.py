@@ -33,6 +33,8 @@ class MockProvider(LLMProvider):
 
         # Deterministic generation
         t_clean = topic if topic and topic.strip() else "Навчальний матеріал"
+        effective_cards = card_count if card_count > 0 else 6
+        effective_quiz = quiz_count if quiz_count > 0 else 5
         
         # Build Flashcards
         cards = []
@@ -46,7 +48,7 @@ class MockProvider(LLMProvider):
             ("Що відбувається при виникненні конфлікту оновлення?", "Система застосовує оптимістичне блокування (Optimistic Locking) або відкат транзакції.", "Надійність")
         ]
         
-        for i in range(card_count):
+        for i in range(effective_cards):
             front, back, cat = sample_cards[i % len(sample_cards)]
             cards.append({
                 "id": i + 1,
@@ -90,7 +92,7 @@ class MockProvider(LLMProvider):
             )
         ]
 
-        for i in range(quiz_count):
+        for i in range(effective_quiz):
             q, opts, c_idx, expl = sample_quiz[i % len(sample_quiz)]
             quiz.append({
                 "id": i + 1,

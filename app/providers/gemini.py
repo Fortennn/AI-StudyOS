@@ -26,40 +26,54 @@ class GeminiProvider(LLMProvider):
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={self.api_key}"
 
+        # Determine counts if auto
+        c_req = f"{card_count} карток" if card_count > 0 else "оптимальну кількість карток (від 5 до 20 залежно від насиченості тексту)"
+        q_req = f"{quiz_count} питань" if quiz_count > 0 else "оптимальну кількість тестових питань (від 4 до 10)"
+
         system_instruction = (
-            "You are a master academic tutor and educational content generator. "
-            "Analyze the given lecture/study notes and return a strictly valid JSON object matching this schema:\n"
+            "Ти — елітний академічний тьютор та експерт зі швидкого запам'ятовування (Spaced Repetition & Flashcard Mastery).\n"
+            "Твоя мета: глибоко проаналізувати навчальний матеріал і трансформувати його у високоефективний інтерактивний навчальний комплект.\n\n"
+            "КРИТИЧНІ ПРАВИЛА ПЕДАГОГІКИ:\n"
+            "1. Мова: відповідай тією ж мовою, якою написаний вхідний текст (якщо українська — строго українською).\n"
+            "2. Принцип атомарності флеш-карток: кожна картка повинна перевіряти ОДИН конкретний концепт. Уникай розмитих запитань типу 'Розкажи все про...'.\n"
+            "3. Структура зворотного боку картки (Back):\n"
+            "   - Чітка суть: 1-2 концентрованих речення без 'води'.\n"
+            "   - Приклад / Практика: життєва аналогія, фрагмент коду або формула.\n"
+            "   - Порада / Пастка: на чому найчастіше помиляються на іспиті.\n"
+            "4. Реалістичні категорії для карток (Category): 'Термін', 'Принцип дії', 'Формула / Код', 'Пастка на іспиті', 'Порівняння'.\n"
+            "5. Розумні тести (Quiz): варіанти відповідей повинні бути правдоподібними, відображаючи типові помилки студентів (без очевидно безглуздих дистракторів).\n"
+            "6. Фактична точність: спирайся виключно на факти та термінологію з наданого тексту, без галюцинацій.\n\n"
+            "Поверни строго валідний JSON за такою схемою:\n"
             "{\n"
             '  "summary": {\n'
-            '    "tldr": "string (concise 3-4 sentence overview in Ukrainian)",\n'
-            '    "key_takeaways": ["string (4-6 key principles or formulas in Ukrainian)"]\n'
+            '    "tldr": "string (глибоке концентроване резюме теми на 3-4 речення)",\n'
+            '    "key_takeaways": ["string (4-6 ключових законів, правил або принципів)"]\n'
             "  },\n"
             '  "flashcards": [\n'
-            '    {\n'
+            "    {\n"
             '      "id": 1,\n'
-            '      "front": "string (clear question or term in Ukrainian)",\n'
-            '      "back": "string (detailed explanation and definition in Ukrainian)",\n'
-            '      "category": "string (e.g. Теорія, Практика, Оптимізація)"\n'
-            '    }\n'
+            '      "front": "string (лаконічне, чітке запитання або назва явища)",\n'
+            '      "back": "string (визначення + приклад + підводний камінь)",\n'
+            '      "category": "string (Термін | Принцип дії | Формула / Код | Пастка на іспиті | Порівняння)"\n'
+            "    }\n"
             "  ],\n"
             '  "quiz": [\n'
-            '    {\n'
+            "    {\n"
             '      "id": 1,\n'
-            '      "question": "string (multiple choice question in Ukrainian)",\n'
+            '      "question": "string (каверзне концептуальне питання)",\n'
             '      "options": ["string", "string", "string", "string"],\n'
             '      "correct_index": 0,\n'
-            '      "explanation": "string (why this answer is correct in Ukrainian)"\n'
-            '    }\n'
+            '      "explanation": "string (чому ця відповідь правильна і чому інші помилкові)"\n'
+            "    }\n"
             "  ]\n"
             "}\n"
-            "Do not include markdown fences like ```json. Return raw JSON."
+            "Не додавай markdown-теги ```json. Поверни лише сирий JSON."
         )
 
         user_content = (
             f"Тема: {topic}\n"
-            f"Кількість карток: {card_count}\n"
-            f"Кількість тестових запитань: {quiz_count}\n\n"
-            f"Вхідний матеріал:\n{prompt}"
+            f"Вимога до обсягу: сформувати {c_req} та {q_req}.\n\n"
+            f"Вхідний навчальний матеріал:\n{prompt}"
         )
 
         payload = {
@@ -70,7 +84,7 @@ class GeminiProvider(LLMProvider):
                 }
             ],
             "generationConfig": {
-                "temperature": 0.3,
+                "temperature": 0.2,
                 "responseMimeType": "application/json"
             }
         }

@@ -9,13 +9,17 @@ class StudyOrchestrator:
 
     def build_prompt(self, text: str, topic: str, card_count: int, quiz_count: int) -> str:
         """Constructs the system prompt instructing the model to generate structured JSON."""
+        c_req = f"{card_count} карток" if card_count > 0 else "оптимальну кількість карток (від 5 до 20 залежно від тексту)"
+        q_req = f"{quiz_count} питань" if quiz_count > 0 else "оптимальну кількість тестових питань (від 4 до 10)"
+        
         return (
-            "Ти — висококваліфікований академічний тьютор та експерт з підготовки до іспитів.\n"
+            "Ти — елітний академічний тьютор та експерт зі швидкого навчання.\n"
             f"Тема матеріалу: {topic}\n"
-            f"Вимоги до обсягу: сформувати коротке резюме (TL;DR та 4 тези), {card_count} інтерактивних карток та {quiz_count} тестових питань.\n"
+            f"Вимоги до обсягу: сформувати {c_req} та {q_req}, а також лаконічне резюме (TL;DR і 4 тези).\n"
+            "Вимоги до якості: атомарні запитання на картках, структура відвовіді (суть + приклад/код + підводний камінь), правдоподібні дистрактори у квізі.\n"
             "Вхідний конспект лекції:\n"
             f"\"\"\"\n{text}\n\"\"\"\n"
-            "Поверни строго валідний JSON за вказаною схемою без додаткових тегів Markdown."
+            "Поверни строго валідний JSON за схемою без додаткових тегів Markdown."
         )
 
     def validate_and_parse_output(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
