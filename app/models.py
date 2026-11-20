@@ -1,0 +1,65 @@
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, Field
+
+# --- Input Models ---
+class StudyRequest(BaseModel):
+    text: str = Field(..., min_length=10, max_length=30000, description="Текст конспекту або лекції для обробки")
+    topic: Optional[str] = Field(default="Загальна тема", description="Назва теми або предмету")
+    card_count: int = Field(default=5, ge=1, le=20, description="Кількість флеш-карток")
+    quiz_count: int = Field(default=5, ge=1, le=20, description="Кількість питань тесту")
+
+# --- Structured Output / Domain Models ---
+class StudySummary(BaseModel):
+    tldr: str = Field(..., description="Стисле резюме конспекту (3-4 речення)")
+    key_takeaways: List[str] = Field(..., description="Ключові тези або формули")
+
+class FlashcardItem(BaseModel):
+    id: int = Field(..., description="Унікальний порядковий номер картки")
+    front: str = Field(..., description="Питання або термін на лицьовій стороні")
+    back: str = Field(..., description="Визначення, відповідь або пояснення на зворотній стороні")
+    category: str = Field(default="Основне", description="Категорія складності або підтема")
+
+class QuizItem(BaseModel):
+    id: int = Field(..., description="Порядковий номер питання")
+    question: str = Field(..., description="Текст питання")
+    options: List[str] = Field(..., min_length=4, max_length=4, description="Чотири варіанти відповіді (A, B, C, D)")
+    correct_index: int = Field(..., ge=0, le=3, description="Індекс правильної відповіді (0..3)")
+    explanation: str = Field(..., description="Коротке пояснення правильної відповіді")
+
+class StudyKitResponse(BaseModel):
+    request_id: str
+    status: str = "success"
+    topic: str
+    summary: StudySummary
+    flashcards: List[FlashcardItem]
+    quiz: List[QuizItem]
+
+# --- Error Contract ---
+class ErrorDetail(BaseModel):
+    kind: str
+    message: str
+    retryable: bool
+    request_id: str
+
+class ErrorResponse(BaseModel):
+    error: ErrorDetail
+
+# --- Health Contract ---
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    provider: str
+    model: str
+    mode: str
+    storage: str
+    extra: Dict[str, Any]
+    uptime_s: int
+
+# --- Storage Entity ---
+class SessionRecord(BaseModel):
+    id: str
+    created_at: str
+    topic: str
+    text_length: int
+    card_count: int
+    quiz_count: int

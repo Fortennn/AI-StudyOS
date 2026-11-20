@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Environment & Secrets
+.env
+*.local
+
+# Database & Logs
+*.db
+*.sqlite3
+data/*.db
+logs/*.log
+
+# Word & Office documents
+*.docx
+*.doc
+
+# IDE
+.vscode/
+.idea/
+*.swp

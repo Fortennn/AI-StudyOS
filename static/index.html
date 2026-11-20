@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Copilot — Smart Flashcards & Knowledge Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 3D Flip Card Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800/80 sticky top-0 z-50 glass-panel">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 p-[1px] shadow-lg shadow-brand-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
+                        <span class="text-xl font-black bg-gradient-to-r from-brand-400 to-cyan-300 bg-clip-text text-transparent">AI</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-lg text-white tracking-tight">Study Copilot</span>
+                        <span class="px-2 py-0.5 text-xs font-semibold bg-brand-500/20 text-brand-300 rounded-full border border-brand-500/30">v0.1 Prototype</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Smart Flashcards & Knowledge Hub</p>
+                </div>
+            </div>
+
+            <!-- Health Status Badge -->
+            <div id="healthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>System: <strong class="text-emerald-400" id="healthStatus">OK</strong></span>
+                <span class="text-slate-600">|</span>
+                <span>Provider: <strong class="text-cyan-400" id="healthProvider">MOCK</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero Section with 3D Render -->
+        <div class="relative rounded-3xl overflow-hidden mb-8 border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-brand-950/40 p-6 sm:p-8 lg:p-10 shadow-2xl">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium">
+                        <span>✨</span>
+                        <span>Штучний інтелект для навчання нового покоління</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                        Твій конспект у <span class="bg-gradient-to-r from-cyan-400 via-brand-400 to-indigo-400 bg-clip-text text-transparent">3D флеш-картки</span> та тести за 2 секунди
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                        Встав будь-яку лекцію, статтю чи замітку. AI Study Copilot виділить ключове, згенерує інтерактивні картки з 3D-переворотом та підготує квіз для самоперевірки.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="loadSample('databases')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+                            📦 Приклад: Бази даних
+                        </button>
+                        <button onclick="loadSample('os')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+                            ⚡ Приклад: Операційні системи
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 flex justify-center lg:justify-end">
+                    <div class="relative w-full max-w-sm rounded-2xl overflow-hidden border border-brand-500/30 shadow-2xl shadow-brand-500/20 group">
+                        <img src="/static/hero.jpg" alt="3D AI Study Concept" class="w-full h-auto object-cover transform group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-slate-300">
+                            <span class="font-medium">3D Knowledge Hub Render</span>
+                            <span class="px-2 py-0.5 bg-slate-900/80 rounded border border-white/10 text-cyan-300">Claymorphic AI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Workspace (Grid 12 cols) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Input Form (5 cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <span>📝</span>
+                            <span>Вхідний конспект</span>
+                        </h2>
+                        <span id="charCount" class="text-xs font-mono text-slate-400">0 / 30 000</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Назва теми / предмету</label>
+                            <input id="inputTopic" type="text" placeholder="Наприклад: Бази даних та індекси" class="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white text-sm focus:outline-none focus:border-brand-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Текст лекції або заміток</label>
+                            <textarea id="inputText" rows="10" placeholder="Встав сюди текст конспекту..." class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white text-sm focus:outline-none focus:border-brand-500 transition leading-relaxed resize-none"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Флеш-карток</label>
+                                <select id="inputCardCount" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-brand-500">
+                                    <option value="3">3 картки</option>
+                                    <option value="5" selected>5 карток</option>
+                                    <option value="8">8 карток</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Питань тесту</label>
+                                <select id="inputQuizCount" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-brand-500">
+                                    <option value="3">3 питання</option>
+                                    <option value="5" selected>5 питань</option>
+                                    <option value="8">8 питань</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button id="btnGenerate" onclick="handleGenerate()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-brand-500/25 flex items-center justify-center space-x-2 transition transform active:scale-95">
+                            <span id="btnIcon">⚡</span>
+                            <span id="btnText">Сформувати навчальний комплект</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Notification Box -->
+                <div id="errorBox" class="hidden rounded-2xl border border-red-500/30 bg-red-950/40 p-4 text-xs text-red-200 space-y-1">
+                    <div class="flex items-center space-x-2 text-red-400 font-bold">
+                        <span>⚠️</span>
+                        <span id="errorKind">Помилка</span>
+                    </div>
+                    <p id="errorMessage" class="text-slate-300"></p>
+                    <div class="text-[10px] font-mono text-slate-500 pt-1" id="errorReqId"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Results (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Results Tabs -->
+                <div class="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800 min-h-[500px] flex flex-col">
+                    
+                    <!-- Tabs Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                        <div class="flex space-x-2">
+                            <button id="tabBtnCards" onclick="switchTab('cards')" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-brand-600 text-white shadow-md">
+                                🃏 3D Картки (<span id="cardsBadge">0</span>)
+                            </button>
+                            <button id="tabBtnQuiz" onclick="switchTab('quiz')" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800">
+                                🎯 Квіз (<span id="quizBadge">0</span>)
+                            </button>
+                            <button id="tabBtnSummary" onclick="switchTab('summary')" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800">
+                                📋 Самарі
+                            </button>
+                        </div>
+                        <div id="resultReqBadge" class="text-[11px] font-mono text-slate-500">Готовий до роботи</div>
+                    </div>
+
+                    <!-- Placeholder / Empty State -->
+                    <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">
+                            📚
+                        </div>
+                        <h3 class="text-base font-bold text-slate-300">Навчальний комплект ще не згенеровано</h3>
+                        <p class="text-xs text-slate-500 max-w-sm">
+                            Введіть конспект зліва або оберіть один із готових прикладів зверху і натисніть кнопку генерації.
+                        </p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden flex-1 flex flex-col items-center justify-center text-center p-8 space-y-4">
+                        <div class="w-12 h-12 rounded-full border-4 border-brand-500/20 border-t-brand-500 animate-spin"></div>
+                        <p class="text-sm font-semibold text-slate-300">Обробка конспекту через Walking Skeleton...</p>
+                        <p class="text-xs text-slate-500">Запит проходить шари: Контролер ➔ Сервіс ➔ Шлюз ➔ Mock ➔ База</p>
+                    </div>
+
+                    <!-- TAB 1: 3D FLASHCARDS -->
+                    <div id="tabCards" class="hidden flex-1 flex flex-col justify-between">
+                        <!-- 3D Card Container -->
+                        <div class="perspective-1000 w-full max-w-md mx-auto my-auto py-4">
+                            <div id="flashcardBox" onclick="flipCard()" class="transform-style-3d cursor-pointer relative h-64 rounded-3xl transition-transform duration-700 shadow-2xl">
+                                
+                                <!-- FRONT -->
+                                <div class="backface-hidden absolute inset-0 rounded-3xl p-6 glass-card border border-brand-500/30 flex flex-col justify-between shadow-brand-500/10">
+                                    <div class="flex items-center justify-between">
+                                        <span id="cardCategory" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">Категорія</span>
+                                        <span class="text-[11px] font-mono text-slate-400">Натисни щоб перевернути 🔄</span>
+                                    </div>
+                                    <div class="text-center my-auto px-4">
+                                        <h4 id="cardFront" class="text-lg sm:text-xl font-bold text-white leading-relaxed">Термін або питання</h4>
+                                    </div>
+                                    <div class="text-center text-[11px] text-slate-500">Лицьова сторона</div>
+                                </div>
+
+                                <!-- BACK -->
+                                <div class="backface-hidden rotate-y-180 absolute inset-0 rounded-3xl p-6 bg-slate-900 border border-cyan-500/40 flex flex-col justify-between shadow-2xl shadow-cyan-500/10">
+                                    <div class="flex items-center justify-between">
+                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Відповідь / Визначення</span>
+                                        <span class="text-[11px] font-mono text-cyan-400">Зворотний бік ✓</span>
+                                    </div>
+                                    <div class="text-center my-auto px-2 overflow-y-auto max-h-36">
+                                        <p id="cardBack" class="text-sm sm:text-base text-slate-200 leading-relaxed">Розгорнуте визначення та пояснення суті поняття.</p>
+                                    </div>
+                                    <div class="text-center text-[11px] text-slate-500">Клікни знову для перевороту</div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Card Navigation Controls -->
+                        <div class="flex items-center justify-between pt-6 border-t border-slate-800/80">
+                            <button onclick="prevCard()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-300 border border-slate-700/80 transition flex items-center space-x-1">
+                                <span>←</span>
+                                <span>Попередня</span>
+                            </button>
+                            <span id="cardCounter" class="text-xs font-mono font-bold text-slate-400">1 з 5</span>
+                            <button onclick="nextCard()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-300 border border-slate-700/80 transition flex items-center space-x-1">
+                                <span>Наступна</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: INTERACTIVE QUIZ -->
+                    <div id="tabQuiz" class="hidden flex-1 space-y-6">
+                        <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                            <span id="quizProgressText" class="text-xs font-medium text-slate-400">Питання 1</span>
+                            <span id="quizScoreText" class="text-xs font-bold text-cyan-400">Бали: 0 / 0</span>
+                        </div>
+
+                        <div id="quizQuestionBox" class="space-y-4">
+                            <h3 id="quizQuestionTitle" class="text-base sm:text-lg font-bold text-white leading-snug">Текст запитання</h3>
+                            
+                            <div id="quizOptionsList" class="space-y-2.5">
+                                <!-- Generated options -->
+                            </div>
+
+                            <div id="quizExplanationBox" class="hidden p-3.5 rounded-xl text-xs space-y-1"></div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-4 border-t border-slate-800">
+                            <button id="btnPrevQuiz" onclick="prevQuiz()" class="px-4 py-2 rounded-xl bg-slate-900 text-xs font-semibold text-slate-400 border border-slate-800 transition">Попереднє</button>
+                            <button id="btnNextQuiz" onclick="nextQuiz()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-bold text-white transition">Наступне ➔</button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: SUMMARY -->
+                    <div id="tabSummary" class="hidden flex-1 space-y-5">
+                        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-400">💡 Стисле резюме (TL;DR)</h4>
+                            <p id="summaryTldr" class="text-sm text-slate-200 leading-relaxed"></p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-brand-400">📌 Ключові тези</h4>
+                            <ul id="summaryTakeaways" class="space-y-2 text-xs sm:text-sm text-slate-300">
+                                <!-- Takeaways -->
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 mt-16 py-6 text-center text-xs text-slate-600 font-mono">
+        AI Study Copilot — Архітектура та Walking Skeleton &copy; 2026
+    </footer>
+
+    <!-- App JavaScript -->
+    <script>
+        let currentKit = null;
+        let currentCardIndex = 0;
+        let isCardFlipped = false;
+        let currentQuizIndex = 0;
+        let userQuizAnswers = {};
+
+        const sampleTexts = {
+            databases: {
+                topic: "Реляційні бази даних та індексація",
+                text: "Реляційна база даних зберігає дані у вигляді нормалізованих таблиць, де кожен рядок представляє унікальний запис, а стовпці — атрибути. Первинний ключ (Primary Key) забезпечує однозначну ідентифікацію запису. Для прискорення пошуку використовують індекси, які найчастіше будуються на основі структури даних B-Tree, що дає логарифмічну складність пошуку O(log N). Зовнішній ключ (Foreign Key) гарантує зв'язок між таблицями та підтримує цілісність посилань."
+            },
+            os: {
+                topic: "Архітектура операційних систем",
+                text: "Операційна система є базовим програмним забезпеченням, що управляє апаратними ресурсами комп'ютера: процесором, оперативною пам'яттю та пристроями введення-виведення. Процес — це програма, що виконується у власному ізольованому адресному просторі. Потік (thread) — це найменша одиниця виконання всередині процесу, яка спільно використовує його пам'ять. Диспетчер процесів використовує алгоритми планування (наприклад, Round Robin) для розподілу процесорного часу."
+            }
+        };
+
+        // Initialize Health Status
+        async function fetchHealth() {
+            try {
+                const res = await fetch('/api/health');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('healthStatus').textContent = data.status.toUpperCase();
+                    document.getElementById('healthProvider').textContent = data.provider.toUpperCase();
+                }
+            } catch (err) {
+                console.error("Health check error:", err);
+            }
+        }
+        fetchHealth();
+
+        // Char counter
+        const textArea = document.getElementById('inputText');
+        textArea.addEventListener('input', () => {
+            document.getElementById('charCount').textContent = `${textArea.value.length} / 30 000`;
+        });
+
+        function loadSample(key) {
+            const sample = sampleTexts[key];
+            if (sample) {
+                document.getElementById('inputTopic').value = sample.topic;
+                document.getElementById('inputText').value = sample.text;
+                document.getElementById('charCount').textContent = `${sample.text.length} / 30 000`;
+            }
+        }
+
+        async function handleGenerate() {
+            const topic = document.getElementById('inputTopic').value.trim() || "Загальна тема";
+            const text = document.getElementById('inputText').value.trim();
+            const card_count = parseInt(document.getElementById('inputCardCount').value);
+            const quiz_count = parseInt(document.getElementById('inputQuizCount').value);
+
+            const errBox = document.getElementById('errorBox');
+            errBox.classList.add('hidden');
+
+            if (!text || text.length < 10) {
+                showError("Помилка вводу", "Будь ласка, введіть конспект довжиною щонайменше 10 символів.");
+                return;
+            }
+
+            // Loading state
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('tabCards').classList.add('hidden');
+            document.getElementById('tabQuiz').classList.add('hidden');
+            document.getElementById('tabSummary').classList.add('hidden');
+
+            const btn = document.getElementById('btnGenerate');
+            btn.disabled = true;
+            document.getElementById('btnText').textContent = "Обробка в процесі...";
+
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, topic, card_count, quiz_count })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    const errMsg = data.error ? data.error.message : "Невідома помилка сервера";
+                    const errKind = data.error ? data.error.kind : "server_error";
+                    showError(errKind, errMsg, data.error?.request_id);
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
+                currentKit = data;
+                userQuizAnswers = {};
+                renderKit(data);
+
+            } catch (err) {
+                showError("network_error", "Помилка зв'язку з сервером: " + err.message);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                document.getElementById('btnText').textContent = "Сформувати навчальний комплект";
+            }
+        }
+
+        function showError(kind, message, reqId) {
+            const errBox = document.getElementById('errorBox');
+            document.getElementById('errorKind').textContent = kind.toUpperCase();
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorReqId').textContent = reqId ? `Request ID: ${reqId}` : '';
+            errBox.classList.remove('hidden');
+        }
+
+        function renderKit(data) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('cardsBadge').textContent = data.flashcards.length;
+            document.getElementById('quizBadge').textContent = data.quiz.length;
+            document.getElementById('resultReqBadge').textContent = `ID: ${data.request_id}`;
+
+            // Render Summary
+            document.getElementById('summaryTldr').textContent = data.summary.tldr;
+            const takeList = document.getElementById('summaryTakeaways');
+            takeList.innerHTML = '';
+            data.summary.key_takeaways.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start space-x-2';
+                li.innerHTML = `<span class="text-cyan-400 mt-0.5">✦</span><span>${item}</span>`;
+                takeList.appendChild(li);
+            });
+
+            // Reset Card View
+            currentCardIndex = 0;
+            updateCardView();
+
+            // Reset Quiz View
+            currentQuizIndex = 0;
+            updateQuizView();
+
+            // Switch to cards tab by default
+            switchTab('cards');
+        }
+
+        function switchTab(tab) {
+            const tabCards = document.getElementById('tabCards');
+            const tabQuiz = document.getElementById('tabQuiz');
+            const tabSummary = document.getElementById('tabSummary');
+
+            const btnCards = document.getElementById('tabBtnCards');
+            const btnQuiz = document.getElementById('tabBtnQuiz');
+            const btnSummary = document.getElementById('tabBtnSummary');
+
+            [tabCards, tabQuiz, tabSummary].forEach(t => t.classList.add('hidden'));
+            [btnCards, btnQuiz, btnSummary].forEach(b => {
+                b.className = 'px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800';
+            });
+
+            if (tab === 'cards') {
+                tabCards.classList.remove('hidden');
+                btnCards.className = 'px-4 py-2 rounded-xl text-xs font-bold transition bg-brand-600 text-white shadow-md';
+            } else if (tab === 'quiz') {
+                tabQuiz.classList.remove('hidden');
+                btnQuiz.className = 'px-4 py-2 rounded-xl text-xs font-bold transition bg-brand-600 text-white shadow-md';
+            } else if (tab === 'summary') {
+                tabSummary.classList.remove('hidden');
+                btnSummary.className = 'px-4 py-2 rounded-xl text-xs font-bold transition bg-brand-600 text-white shadow-md';
+            }
+        }
+
+        // --- Flashcard Logic ---
+        function flipCard() {
+            const box = document.getElementById('flashcardBox');
+            isCardFlipped = !isCardFlipped;
+            if (isCardFlipped) {
+                box.classList.add('rotate-y-180');
+            } else {
+                box.classList.remove('rotate-y-180');
+            }
+        }
+
+        function updateCardView() {
+            if (!currentKit || !currentKit.flashcards.length) return;
+            const card = currentKit.flashcards[currentCardIndex];
+            
+            // Unflip first
+            const box = document.getElementById('flashcardBox');
+            box.classList.remove('rotate-y-180');
+            isCardFlipped = false;
+
+            document.getElementById('cardCategory').textContent = card.category || 'Основне';
+            document.getElementById('cardFront').textContent = card.front;
+            document.getElementById('cardBack').textContent = card.back;
+            document.getElementById('cardCounter').textContent = `${currentCardIndex + 1} з ${currentKit.flashcards.length}`;
+        }
+
+        function nextCard() {
+            if (!currentKit) return;
+            if (currentCardIndex < currentKit.flashcards.length - 1) {
+                currentCardIndex++;
+                updateCardView();
+            }
+        }
+
+        function prevCard() {
+            if (!currentKit) return;
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCardView();
+            }
+        }
+
+        // --- Quiz Logic ---
+        function updateQuizView() {
+            if (!currentKit || !currentKit.quiz.length) return;
+            const q = currentKit.quiz[currentQuizIndex];
+            const total = currentKit.quiz.length;
+
+            document.getElementById('quizProgressText').textContent = `Питання ${currentQuizIndex + 1} з ${total}`;
+            document.getElementById('quizQuestionTitle').textContent = q.question;
+
+            // Score calculation
+            let correctCount = 0;
+            let answeredCount = 0;
+            for (let idx in userQuizAnswers) {
+                answeredCount++;
+                if (userQuizAnswers[idx] === currentKit.quiz[idx].correct_index) {
+                    correctCount++;
+                }
+            }
+            document.getElementById('quizScoreText').textContent = `Результат: ${correctCount} / ${total}`;
+
+            const optList = document.getElementById('quizOptionsList');
+            optList.innerHTML = '';
+
+            const chosen = userQuizAnswers[currentQuizIndex];
+            const isAnswered = chosen !== undefined;
+
+            const letters = ['A', 'B', 'C', 'D'];
+            q.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm font-medium flex items-center space-x-3 transition ';
+
+                if (!isAnswered) {
+                    btn.className += 'bg-slate-900 border-slate-700/80 hover:border-brand-500 hover:bg-slate-800 text-slate-200';
+                    btn.onclick = () => selectQuizAnswer(optIdx);
+                } else {
+                    if (optIdx === q.correct_index) {
+                        btn.className += 'bg-emerald-950/60 border-emerald-500 text-emerald-200 shadow-md shadow-emerald-500/10';
+                    } else if (optIdx === chosen) {
+                        btn.className += 'bg-rose-950/60 border-rose-500 text-rose-200';
+                    } else {
+                        btn.className += 'bg-slate-900/60 border-slate-800 text-slate-500 opacity-60';
+                    }
+                }
+
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-xs text-slate-300">${letters[optIdx]}</span>
+                    <span class="flex-1">${optText}</span>
+                `;
+                optList.appendChild(btn);
+            });
+
+            // Explanation
+            const expBox = document.getElementById('quizExplanationBox');
+            if (isAnswered) {
+                const isCorrect = chosen === q.correct_index;
+                expBox.className = isCorrect ? 'p-3.5 rounded-xl text-xs space-y-1 bg-emerald-950/50 border border-emerald-500/40 text-emerald-200' : 'p-3.5 rounded-xl text-xs space-y-1 bg-rose-950/50 border border-rose-500/40 text-rose-200';
+                expBox.innerHTML = `
+                    <div class="font-bold flex items-center space-x-1">
+                        <span>${isCorrect ? '✓ Правильно!' : '✕ Неправильно'}</span>
+                    </div>
+                    <p class="text-slate-300">${q.explanation}</p>
+                `;
+                expBox.classList.remove('hidden');
+            } else {
+                expBox.classList.add('hidden');
+            }
+        }
+
+        function selectQuizAnswer(optIdx) {
+            userQuizAnswers[currentQuizIndex] = optIdx;
+            updateQuizView();
+        }
+
+        function nextQuiz() {
+            if (!currentKit) return;
+            if (currentQuizIndex < currentKit.quiz.length - 1) {
+                currentQuizIndex++;
+                updateQuizView();
+            }
+        }
+
+        function prevQuiz() {
+            if (!currentKit) return;
+            if (currentQuizIndex > 0) {
+                currentQuizIndex--;
+                updateQuizView();
+            }
+        }
+    </script>
+</body>
+</html>
