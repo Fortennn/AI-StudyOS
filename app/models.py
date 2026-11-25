@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pydantic import BaseModel, Field
 
 # --- Input Models ---
@@ -28,6 +28,10 @@ class QuizItem(BaseModel):
     correct_index: int = Field(..., ge=0, le=3, description="Індекс правильної відповіді (0..3)")
     explanation: str = Field(..., description="Коротке пояснення правильної відповіді")
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str = Field(..., min_length=1, max_length=16000)
+
 class StudyKitResponse(BaseModel):
     request_id: str
     status: str = "success"
@@ -35,6 +39,7 @@ class StudyKitResponse(BaseModel):
     summary: StudySummary
     flashcards: List[FlashcardItem]
     quiz: List[QuizItem]
+    chat_history: List[ChatMessage] = Field(default_factory=list)
 
 # --- Error Contract ---
 class ErrorDetail(BaseModel):
@@ -65,3 +70,16 @@ class SessionRecord(BaseModel):
     text_length: int
     card_count: int
     quiz_count: int
+
+# --- Lecture Chat Models ---
+class ChatRequest(BaseModel):
+    session_id: Optional[str] = Field(default=None)
+    topic: str = Field(default="Загальна тема")
+    context_text: str = Field(default="")
+    question: str = Field(..., min_length=2, max_length=2000)
+    history: List[ChatMessage] = Field(default_factory=list)
+    provider: Optional[str] = Field(default=None)
+
+class ChatResponse(BaseModel):
+    request_id: str
+    answer: str

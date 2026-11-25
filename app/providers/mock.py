@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import Dict, Any
+from typing import Dict, Any, List
 from app.providers.base import LLMProvider, ProviderError
 from app.telemetry import logger
 
@@ -120,3 +120,13 @@ class MockProvider(LLMProvider):
             "flashcards": cards,
             "quiz": quiz
         }
+
+    async def answer_question(self, question: str, topic: str, context_text: str, history: List[Dict[str, str]]) -> str:
+        if self.delay_ms > 0:
+            await asyncio.sleep(self.delay_ms / 1000.0)
+        return (
+            f"**Пояснення за темою «{topic}» (Mock):**\n"
+            f"На ваш запит «{question}» система спирається на ключові положення конспекту. "
+            "Зокрема, при аналізі різницевих схем центральна формула $D_0 f(x) = \\frac{f(x+h) - f(x-h)}{2h}$ "
+            "забезпечує порядок точності $O(h^2)$ за умови гладкості $f \\in C^3$."
+        )

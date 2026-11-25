@@ -1,7 +1,7 @@
 import asyncio
 import json
 import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import httpx
 from app.providers.base import LLMProvider, ProviderError
 from app.telemetry import logger
@@ -23,8 +23,12 @@ def _get_client(timeout_s: int) -> httpx.AsyncClient:
 class GeminiProvider(LLMProvider):
     FALLBACK_MODELS = [
         "gemini-3-flash-preview",
+        "gemini-3.8-flash",
         "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
         "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-3.7-flash",
     ]
 
     def __init__(self, api_key: str, model: str = "gemini-3-flash-preview", timeout_s: int = 35):
@@ -52,8 +56,15 @@ class GeminiProvider(LLMProvider):
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={self.api_key}"
 
         # Determine counts if auto
-        c_req = f"{card_count} карток" if card_count > 0 else "оптимальну кількість карток (від 5 до 20 залежно від насиченості тексту)"
-        q_req = f"{quiz_count} питань" if quiz_count > 0 else "оптимальну кількість тестових питань (від 4 до 10)"
+        if card_count > 0:
+            c_req = f"РІВНО {card_count} флеш-карток (масив flashcards має містити {card_count} елементів з id 1..{card_count})"
+        else:
+            c_req = "оптимальну кількість карток (від 5 до 20 залежно від насиченості тексту)"
+
+        if quiz_count > 0:
+            q_req = f"РІВНО {quiz_count} тестових питань (масив quiz має містити {quiz_count} елементів з id 1..{quiz_count})"
+        else:
+            q_req = "оптимальну кількість тестових питань (від 4 до 10)"
 
         system_instruction = (
             "Ти — академічний тьютор. Трансформуй конспект у структурований навчальний комплект (JSON).\n"
@@ -66,7 +77,8 @@ class GeminiProvider(LLMProvider):
             "4. Категорії карток: 'Термін' | 'Принцип дії' | 'Формула / Код' | 'Пастка на іспиті' | 'Порівняння'.\n"
             "5. Квіз: 4 правдоподібні варіанти та коротке пояснення.\n"
             "6. Усі математичні формули, степені та символи оформлюй у LaTeX: $...$ або $$...$$.\n"
-            "7. Лише факти з тексту, без вигадок.\n\n"
+            "7. Лише факти з тексту, без вигадок.\n"
+            "8. СУВОРЕ ОБМЕЖЕННЯ КІЛЬКОСТІ: якщо користувач задав точне число N карток або M питань — згенеруй РІВНО N карток і РІВНО M питань (розглядай різні аспекти, деталі, порівняння та практичні наслідки матеріалу, не зупиняйся на 4-5).\n\n"
             "Схема JSON (без markdown):\n"
             '{"summary":{"tldr":"string (адаптивне змістовне резюме з формулами)","key_takeaways":["string (оптимальна кількість конкретних фактів, формул і правил)"]},'
             '"flashcards":[{"id":1,"front":"string","back":"string","category":"Термін"}],'
@@ -74,8 +86,9 @@ class GeminiProvider(LLMProvider):
         )
 
         user_content = (
-            f"Тема: {topic}. Обсяг: {c_req}, {q_req}.\n"
-            f"Матеріал:\n{prompt}"
+            f"Тема: {topic}.\n"
+            f"Матеріал:\n{prompt}\n\n"
+            f"ОБОВ'ЯЗКОВА ВИМОГА ДО КІЛЬКОСТІ: {c_req}; {q_req}."
         )
 
         payload = {
@@ -90,22 +103,67 @@ class GeminiProvider(LLMProvider):
             ],
             "generationConfig": {
                 "temperature": 0.2,
-                "maxOutputTokens": 6144,
+                "maxOutputTokens": 8192,
                 "responseMimeType": "application/json",
                 "thinkingConfig": {
                     "thinkingBudget": 0
                 }
             }
         }
+        return await self._call_with_fallback(payload, clean_model=clean_model, parse_json=True)
 
-        # Build unique candidate model list (primary + fallbacks)
+    async def answer_question(self, question: str, topic: str, context_text: str, history: List[Dict[str, str]]) -> str:
+        if not self.api_key:
+            raise ProviderError(
+                kind="missing_api_key",
+                message="Не задано API ключ для Gemini (перевірте LLM_API_KEY у .env файлі)",
+                retryable=False
+            )
+
+        clean_model = self.model.replace("models/", "")
+        system_instruction = (
+            "Ти — персональний академічний тьютор. Відповідай на запитання студента по наданому конспекту.\n"
+            "Правила:\n"
+            "1. Мова відповіді = мова запитання/конспекту.\n"
+            "2. Відповідай чітко, по суті й зрозуміло (можна з короткими списками та прикладами).\n"
+            "3. Формули оформлюй у LaTeX: $...$ або $$...$$.\n"
+            "4. Спирайся на матеріал конспекту; якщо чогось у конспекті немає, чесно зазнач це."
+        )
+
+        contents = [
+            {
+                "role": "user",
+                "parts": [{"text": f"Тема: {topic}\nКонтекст лекції:\n{context_text[:14000]}"}]
+            },
+            {
+                "role": "model",
+                "parts": [{"text": "Зрозумів, я ознайомився з конспектом. Яке запитання?"}]
+            }
+        ]
+        for msg in history[-6:]:
+            role = "model" if msg.get("role") == "assistant" else "user"
+            contents.append({"role": role, "parts": [{"text": msg.get("text", "")}]})
+        contents.append({"role": "user", "parts": [{"text": question}]})
+
+        payload = {
+            "systemInstruction": {"parts": [{"text": system_instruction}]},
+            "contents": contents,
+            "generationConfig": {
+                "temperature": 0.3,
+                "maxOutputTokens": 8192,
+                "thinkingConfig": {"thinkingBudget": 0}
+            }
+        }
+        return await self._call_with_fallback(payload, clean_model=clean_model, parse_json=False)
+
+    async def _call_with_fallback(self, payload: Dict[str, Any], clean_model: str, parse_json: bool = True) -> Any:
         candidate_models = []
         for m in [clean_model, *self.FALLBACK_MODELS]:
             if m and m not in candidate_models:
                 candidate_models.append(m)
 
         client = _get_client(self.timeout_s)
-        per_attempt_timeout = min(float(self.timeout_s), 14.0)
+        per_attempt_timeout = min(float(self.timeout_s), 20.0)
         last_error: Optional[ProviderError] = None
 
         for idx, target_model in enumerate(candidate_models):
@@ -146,7 +204,11 @@ class GeminiProvider(LLMProvider):
                         pass
                     last_error = ProviderError(
                         kind="provider_unavailable",
-                        message=f"Gemini API повернув помилку (HTTP {res.status_code}): {err_text}",
+                        message=(
+                            "Сервери Gemini тимчасово перевантажені (HTTP 503). Спробуйте ще раз через кілька секунд."
+                            if res.status_code == 503
+                            else f"Gemini API повернув помилку (HTTP {res.status_code}): {err_text}"
+                        ),
                         retryable=res.status_code in [500, 502, 503, 504]
                     )
                     if res.status_code in (404, 500, 502, 503, 504):
@@ -172,6 +234,13 @@ class GeminiProvider(LLMProvider):
                     )
 
                 raw_text = parts[0].get("text", "").strip()
+                usage = data.get("usageMetadata", {})
+                if usage:
+                    logger.info(f"Gemini '{target_model}' tokens: prompt={usage.get('promptTokenCount')}, candidates={usage.get('candidatesTokenCount')}, total={usage.get('totalTokenCount')}")
+
+                if not parse_json:
+                    return raw_text
+
                 if raw_text.startswith("```json"):
                     raw_text = raw_text[7:]
                 elif raw_text.startswith("```"):
@@ -180,12 +249,7 @@ class GeminiProvider(LLMProvider):
                     raw_text = raw_text[:-3]
                 raw_text = raw_text.strip()
 
-                parsed = json.loads(raw_text)
-
-                usage = data.get("usageMetadata", {})
-                if usage:
-                    logger.info(f"Gemini '{target_model}' tokens: prompt={usage.get('promptTokenCount')}, candidates={usage.get('candidatesTokenCount')}, total={usage.get('totalTokenCount')}")
-                return parsed
+                return json.loads(raw_text)
 
             except httpx.TimeoutException:
                 logger.warning(f"Model '{target_model}' timed out after {per_attempt_timeout}s, trying fallback...")

@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 
 from app.settings import get_settings
-from app.models import StudyRequest, StudyKitResponse, HealthResponse, ErrorResponse, ErrorDetail, SessionRecord
+from app.models import StudyRequest, StudyKitResponse, HealthResponse, ErrorResponse, ErrorDetail, SessionRecord, ChatRequest, ChatResponse
 from app.telemetry import logger, request_id_ctx
 from app.storage import Storage
 from app.gateway import LLMGateway
@@ -188,6 +188,37 @@ async def generate_kit(payload: StudyRequest):
 async def get_history():
     """Lists recent study sessions from storage."""
     return storage.list_recent_sessions(limit=10)
+
+@app.get("/api/history/{session_id}", response_model=StudyKitResponse)
+async def get_history_session(session_id: str):
+    """Restores a previously generated study kit by session ID."""
+    req_id = request_id_ctx.get()
+    kit = storage.get_session(session_id)
+    if not kit:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    kind="not_found",
+                    message="Сесію не знайдено в історії.",
+                    retryable=False,
+                    request_id=req_id
+                )
+            ).model_dump()
+        )
+    return kit
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat_with_lecture(payload: ChatRequest):
+    """Follow-up Q&A grounded in the loaded lecture material."""
+    req_id = request_id_ctx.get()
+    return await study_service.answer_lecture_question(payload, req_id=req_id)
+
+@app.delete("/api/chat/{session_id}")
+async def clear_lecture_chat(session_id: str):
+    """Clears persisted chat history for a study session."""
+    storage.clear_chat_history(session_id)
+    return {"status": "ok"}
 
 # Serve Web UI
 import os

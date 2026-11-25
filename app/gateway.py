@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, List
 from app.providers.base import LLMProvider, ProviderError
 from app.providers.mock import MockProvider
 from app.providers.gemini import GeminiProvider
@@ -56,6 +56,33 @@ class LLMGateway:
             raise pe
         except Exception as e:
             logger.error(f"Gateway unexpected failure: {str(e)}")
+            raise ProviderError(
+                kind="provider_unavailable",
+                message=f"Збій комунікації з AI провайдером: {str(e)}",
+                retryable=True
+            )
+
+    async def answer_chat(self, question: str, topic: str, context_text: str, history: List[Dict[str, str]]) -> str:
+        logger.info(f"Gateway dispatching chat to provider '{self.settings.llm_provider}' (model: {self.settings.llm_model})")
+        try:
+            return await asyncio.wait_for(
+                self.provider.answer_question(
+                    question=question,
+                    topic=topic,
+                    context_text=context_text,
+                    history=history
+                ),
+                timeout=self.timeout_s
+            )
+        except asyncio.TimeoutError:
+            raise ProviderError(
+                kind="timeout",
+                message=f"Час очікування провайдера перевищено ({self.timeout_s} с)",
+                retryable=True
+            )
+        except ProviderError:
+            raise
+        except Exception as e:
             raise ProviderError(
                 kind="provider_unavailable",
                 message=f"Збій комунікації з AI провайдером: {str(e)}",
