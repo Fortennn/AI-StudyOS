@@ -24,7 +24,7 @@ class StudyService:
                 app_version=self.gateway.settings.app_version,
                 app_port=self.gateway.settings.app_port,
                 llm_provider=req.provider or self.gateway.settings.llm_provider,
-                llm_model="gemini-2.5-flash" if (req.provider == "gemini" and self.gateway.settings.llm_provider != "gemini") else self.gateway.settings.llm_model,
+                llm_model="gemini-3-flash-preview" if (req.provider == "gemini" and self.gateway.settings.llm_provider != "gemini") else self.gateway.settings.llm_model,
                 llm_api_key=req.api_key or self.gateway.settings.llm_api_key,
                 llm_timeout_s=self.gateway.settings.llm_timeout_s,
                 mock_failure_rate=self.gateway.settings.mock_failure_rate,

@@ -13,9 +13,9 @@ class Settings(BaseModel):
 
     # Provider config
     llm_provider: Literal["mock", "gemini"] = Field(default="mock")
-    llm_model: str = Field(default="mock-study-flash")
+    llm_model: str = Field(default="gemini-3.5-flash")
     llm_api_key: str = Field(default="")
-    llm_timeout_s: int = Field(default=15)
+    llm_timeout_s: int = Field(default=35)
 
     # Mock testing options
     mock_failure_rate: float = Field(default=0.0)
