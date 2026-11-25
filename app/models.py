@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 # --- Input Models ---
 class StudyRequest(BaseModel):
-    text: str = Field(..., min_length=10, max_length=50000, description="Текст конспекту або лекції для обробки")
+    text: str = Field(..., min_length=10, max_length=250000, description="Текст конспекту або лекції для обробки")
     topic: Optional[str] = Field(default="Загальна тема", description="Назва теми або предмету")
     card_count: int = Field(default=5, ge=0, le=30, description="Кількість флеш-карток (0 = авто)")
     quiz_count: int = Field(default=5, ge=0, le=25, description="Кількість питань тесту (0 = авто)")

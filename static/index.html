@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudyOS — AI Knowledge Hub</title>
+    <link rel="icon" type="image/jpeg" href="/static/logo.jpg">
     <script>
         (function () {
             try {
@@ -54,11 +55,7 @@
         
         <!-- Logo -->
         <button type="button" onclick="showView('home')" aria-label="Повернутися на головну StudyOS" class="cursor-pointer flex items-center space-x-2.5 group select-none text-left focus:outline-none">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-400 to-violet-400 p-[1.5px] shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
-                <div class="w-full h-full bg-white dark:bg-[#080a11] rounded-[10px] flex items-center justify-center font-extrabold text-xs text-indigo-600 dark:text-sky-300">
-                    S
-                </div>
-            </div>
+            <img src="/static/logo.jpg" alt="StudyOS Logo" class="w-9 h-9 rounded-xl object-cover shadow-lg shadow-sky-500/20 border border-slate-900/10 dark:border-white/15 group-hover:scale-105 transition-transform duration-200">
             <div>
                 <span class="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white/95 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors block leading-none">StudyOS</span>
                 <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">AI Study Copilot</span>
@@ -142,7 +139,7 @@
         <section id="viewHome" class="view-section max-w-3xl mx-auto w-full space-y-6 my-auto">
             
             <div class="text-center space-y-2.5">
-                <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/[0.06] dark:bg-white/[0.05] border border-slate-900/10 dark:border-white/10 text-[11px] font-medium text-slate-600 dark:text-slate-300 backdrop-blur-md">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-slate-900/[0.04] dark:bg-white/[0.05] border border-slate-900/10 dark:border-white/10 text-[11px] font-medium text-slate-600 dark:text-slate-300 backdrop-blur-md">
                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
                     <span>AI-асистент для навчання</span>
                 </div>
@@ -198,63 +195,25 @@
                 <!-- Bottom Composer Toolbar -->
                 <div class="flex flex-wrap items-center justify-between gap-2 px-5 sm:px-6 py-3.5 rounded-b-[28px] bg-slate-900/[0.03] dark:bg-white/[0.025] border-t border-slate-900/10 dark:border-white/[0.07]">
                     
-                    <!-- Left Controls: Custom Glass Dropdowns & Utilities -->
+                    <!-- Left Controls: Settings Gear Modal Trigger & Utilities -->
                     <div class="flex items-center flex-wrap gap-2">
-                        <!-- Custom Card Count Dropdown -->
-                        <div class="custom-select" id="selectWrapCards">
-                            <input type="hidden" id="inputCardCount" value="5">
-                            <button type="button" onclick="toggleCustomSelect('selectWrapCards', event)" aria-haspopup="listbox" aria-expanded="false" class="btn-tap px-3 py-1.5 rounded-xl bg-white/60 hover:bg-white/80 dark:bg-white/[0.07] dark:hover:bg-white/[0.12] border border-slate-900/10 dark:border-white/12 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center space-x-2">
-                                <span id="labelCardCount">5 карток</span>
-                                <svg class="custom-select-chevron w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div class="custom-select-menu" role="listbox">
-                                <button type="button" data-val="0" onclick="pickCustomOption('selectWrapCards', 'inputCardCount', 'labelCardCount', '0', '✨ Авто картки', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>✨ Авто картки</span>
-                                </button>
-                                <button type="button" data-val="5" onclick="pickCustomOption('selectWrapCards', 'inputCardCount', 'labelCardCount', '5', '5 карток', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-900 dark:text-white bg-indigo-500/15 dark:bg-white/10 flex items-center justify-between transition">
-                                    <span>5 карток</span><span class="text-sky-500 dark:text-sky-400 text-[10px]">✓</span>
-                                </button>
-                                <button type="button" data-val="10" onclick="pickCustomOption('selectWrapCards', 'inputCardCount', 'labelCardCount', '10', '10 карток', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>10 карток</span>
-                                </button>
-                                <button type="button" data-val="15" onclick="pickCustomOption('selectWrapCards', 'inputCardCount', 'labelCardCount', '15', '15 карток', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>15 карток</span>
-                                </button>
-                            </div>
-                        </div>
+                        <input type="hidden" id="inputCardCount" value="0">
+                        <input type="hidden" id="inputQuizCount" value="0">
 
-                        <!-- Custom Quiz Count Dropdown -->
-                        <div class="custom-select" id="selectWrapQuiz">
-                            <input type="hidden" id="inputQuizCount" value="5">
-                            <button type="button" onclick="toggleCustomSelect('selectWrapQuiz', event)" aria-haspopup="listbox" aria-expanded="false" class="btn-tap px-3 py-1.5 rounded-xl bg-white/60 hover:bg-white/80 dark:bg-white/[0.07] dark:hover:bg-white/[0.12] border border-slate-900/10 dark:border-white/12 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center space-x-2">
-                                <span id="labelQuizCount">5 питань</span>
-                                <svg class="custom-select-chevron w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div class="custom-select-menu" role="listbox">
-                                <button type="button" data-val="0" onclick="pickCustomOption('selectWrapQuiz', 'inputQuizCount', 'labelQuizCount', '0', '✨ Авто тести', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>✨ Авто тести</span>
-                                </button>
-                                <button type="button" data-val="3" onclick="pickCustomOption('selectWrapQuiz', 'inputQuizCount', 'labelQuizCount', '3', '3 питання', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>3 питання</span>
-                                </button>
-                                <button type="button" data-val="5" onclick="pickCustomOption('selectWrapQuiz', 'inputQuizCount', 'labelQuizCount', '5', '5 питань', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-900 dark:text-white bg-indigo-500/15 dark:bg-white/10 flex items-center justify-between transition">
-                                    <span>5 питань</span><span class="text-sky-500 dark:text-sky-400 text-[10px]">✓</span>
-                                </button>
-                                <button type="button" data-val="8" onclick="pickCustomOption('selectWrapQuiz', 'inputQuizCount', 'labelQuizCount', '8', '8 питань', event)" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-500/15 dark:hover:bg-white/10 flex items-center justify-between transition">
-                                    <span>8 питань</span>
-                                </button>
-                            </div>
-                        </div>
+                        <button id="btnGenSettings" type="button" onclick="openGenSettings(event)" aria-label="Налаштування кількості карток і тестів" class="btn-tap px-3 py-1.5 rounded-xl bg-white/60 hover:bg-white/85 dark:bg-white/[0.07] dark:hover:bg-white/[0.12] border border-slate-900/10 dark:border-white/12 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center space-x-2">
+                            <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Налаштування</span>
+                            <span id="settingsSummaryPill" class="px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-600 dark:text-sky-300 font-mono text-[10px]">✨ Авто</span>
+                        </button>
 
                         <button type="button" onclick="loadQuickSample(event)" title="Завантажити приклад конспекту" class="btn-tap px-3 py-1.5 rounded-xl bg-white/50 hover:bg-white/80 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] border border-slate-900/10 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center space-x-1">
                             <span>⚡</span>
                             <span>Зразок</span>
                         </button>
-                        <span id="charCount" class="hidden sm:inline text-[11px] font-mono text-slate-400 dark:text-slate-500 pl-1">0 / 50 000</span>
+                        <span id="charCount" class="hidden sm:inline text-[11px] font-mono text-slate-400 dark:text-slate-500 pl-1">0 / 250 000</span>
                     </div>
 
                     <!-- Primary Action Pill (Apple/Linear Monochrome Contrast) -->
@@ -499,7 +458,7 @@
                 </div>
 
                 <!-- Finished Round Screen -->
-                <div id="deckFinishedBox" class="hidden absolute inset-0 rounded-[28px] apple-card p-8 z-30 flex flex-col items-center justify-center text-center space-y-4">
+                <div id="deckFinishedBox" class="hidden absolute inset-0 rounded-[28px] apple-card modal-surface p-8 z-30 flex flex-col items-center justify-center text-center space-y-4">
                     <div class="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-2xl">
                         🏆
                     </div>
@@ -671,9 +630,14 @@
                     ← Меню
                 </button>
                 <div class="flex items-center space-x-3 font-mono">
+                    <span id="matchLivesBadge" class="text-xs tracking-widest" title="Залишилось спроб">❤️❤️❤️</span>
+                    <span class="text-slate-300 dark:text-slate-600">|</span>
                     <span id="matchPairsBadge" class="text-slate-600 dark:text-slate-300">Пари: 0 / 5</span>
                     <span class="text-slate-300 dark:text-slate-600">|</span>
-                    <span id="matchTimerBadge" class="text-amber-600 dark:text-amber-300 font-bold">00:00.0</span>
+                    <span class="flex items-center space-x-1">
+                        <span id="matchTimerBadge" class="text-amber-600 dark:text-amber-300 font-bold">00:00.0</span>
+                        <span id="matchPenaltyBadge" class="hidden text-[10px] font-bold text-rose-500 animate-bounce">+3.0с</span>
+                    </span>
                 </div>
                 <button type="button" onclick="startMatch()" class="btn-tap font-medium px-3 py-1.5 rounded-xl bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 border border-slate-900/10 dark:border-white/10">
                     ↻ Заново
@@ -692,12 +656,12 @@
                 </div>
             </div>
 
-            <!-- Match Victory Screen -->
+            <!-- Match Victory / Game Over Screen -->
             <div id="matchFinishedBox" class="hidden apple-card bevel-card rounded-[28px] p-8 text-center space-y-4 max-w-md mx-auto">
-                <div class="w-14 h-14 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">
+                <div id="matchResultIcon" class="w-14 h-14 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">
                     ⚡
                 </div>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Усі пари знайдено!</h3>
+                <h3 id="matchResultTitle" class="text-2xl font-bold text-slate-900 dark:text-white">Усі пари знайдено!</h3>
                 <div class="space-y-1">
                     <p id="matchResultTime" class="text-base font-mono font-bold text-sky-600 dark:text-sky-300">Час: 00:12.4</p>
                     <p id="matchResultMistakes" class="text-xs text-slate-500 dark:text-slate-400">Помилок: 0 &bull; Рекорд: 00:12.4</p>
@@ -715,6 +679,62 @@
         </section>
 
     </main>
+
+    <!-- GENERATION SETTINGS MODAL -->
+    <div id="genSettingsModal" role="dialog" aria-modal="true" aria-labelledby="genSettingsTitle" onclick="if(event.target===this)closeGenSettings()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
+        <div class="apple-card bevel-card modal-surface w-full max-w-md rounded-[28px] p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-900/10 dark:border-white/10 pb-3.5">
+                <div>
+                    <h3 id="genSettingsTitle" class="text-base font-bold text-slate-900 dark:text-white">Налаштування генерації</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Оберіть обсяг колоди та тесту або залиште Авто</p>
+                </div>
+                <button type="button" onclick="closeGenSettings()" aria-label="Закрити налаштування" class="p-1.5 rounded-full bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-slate-500 dark:text-slate-300">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Cards Control -->
+            <div class="space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-800 dark:text-slate-200">3D Флеш-картки</span>
+                    <span id="modalCardsVal" class="font-mono text-indigo-600 dark:text-sky-300 font-semibold">✨ Авто</span>
+                </div>
+                <input id="rangeCardCount" type="range" min="0" max="30" value="0" oninput="setGenCount('cards', this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="setGenCount('cards', 0)" data-preset-cards="0" class="preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">✨ Авто</button>
+                    <button type="button" onclick="setGenCount('cards', 5)" data-preset-cards="5" class="preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">5</button>
+                    <button type="button" onclick="setGenCount('cards', 10)" data-preset-cards="10" class="preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">10</button>
+                    <button type="button" onclick="setGenCount('cards', 15)" data-preset-cards="15" class="preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">15</button>
+                    <button type="button" onclick="setGenCount('cards', 20)" data-preset-cards="20" class="preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">20</button>
+                </div>
+            </div>
+
+            <!-- Quiz Control -->
+            <div class="space-y-2.5 pt-1">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-800 dark:text-slate-200">Тестові питання</span>
+                    <span id="modalQuizVal" class="font-mono text-indigo-600 dark:text-sky-300 font-semibold">✨ Авто</span>
+                </div>
+                <input id="rangeQuizCount" type="range" min="0" max="25" value="0" oninput="setGenCount('quiz', this.value)" class="w-full accent-sky-500 cursor-pointer">
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="setGenCount('quiz', 0)" data-preset-quiz="0" class="preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">✨ Авто</button>
+                    <button type="button" onclick="setGenCount('quiz', 3)" data-preset-quiz="3" class="preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">3</button>
+                    <button type="button" onclick="setGenCount('quiz', 5)" data-preset-quiz="5" class="preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">5</button>
+                    <button type="button" onclick="setGenCount('quiz', 8)" data-preset-quiz="8" class="preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">8</button>
+                    <button type="button" onclick="setGenCount('quiz', 12)" data-preset-quiz="12" class="preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border border-slate-900/10 dark:border-white/10 transition">12</button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-900/10 dark:border-white/10">
+                <button type="button" onclick="resetGenSettings()" class="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition">
+                    Скинути на Авто
+                </button>
+                <button type="button" onclick="closeGenSettings()" class="btn-tap px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 text-xs font-semibold">
+                    Готово
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- FOOTER -->
     <footer class="w-full text-center py-2.5 text-[11px] text-slate-500 dark:text-slate-500/80 font-mono border-t border-slate-900/5 dark:border-white/[0.04]">
@@ -810,11 +830,11 @@
                 name: 'Світлий день',
                 light: 1.0,
                 spotlight: 'rgba(79, 70, 229, 0.10)',
-                base:   [0.945, 0.960, 0.992],
-                slate:  [0.875, 0.905, 0.975],
-                indigo: [0.760, 0.795, 0.965],
-                sky:    [0.745, 0.885, 0.985],
-                silver: [0.855, 0.935, 1.000]
+                base:   [0.925, 0.945, 0.985],
+                slate:  [0.835, 0.875, 0.965],
+                indigo: [0.710, 0.765, 0.955],
+                sky:    [0.680, 0.855, 0.980],
+                silver: [0.965, 0.980, 1.000]
             }
         };
 
@@ -1018,7 +1038,7 @@
 
         function updateCharCount() {
             const len = document.getElementById('inputText').value.length;
-            document.getElementById('charCount').textContent = `${len.toLocaleString()} / 50 000`;
+            document.getElementById('charCount').textContent = `${len.toLocaleString()} / 250 000`;
         }
 
         function loadQuickSample(e) {
@@ -1106,12 +1126,12 @@
             document.getElementById('summaryTldr').textContent = data.summary.tldr;
             const ul = document.getElementById('summaryList');
             ul.innerHTML = '';
-            data.summary.key_takeaways.forEach(item => {
+            data.summary.key_takeaways.forEach((item, idx) => {
                 const li = document.createElement('li');
-                li.className = 'flex items-start space-x-3';
+                li.className = 'flex items-start space-x-3 p-3 rounded-2xl bg-slate-900/[0.03] dark:bg-white/[0.03] border border-slate-900/5 dark:border-white/[0.06]';
                 const marker = document.createElement('span');
-                marker.className = 'text-indigo-500 dark:text-sky-400 font-bold mt-0.5';
-                marker.textContent = '✦';
+                marker.className = 'px-2 py-0.5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-sky-300 font-mono text-[11px] font-bold shrink-0 mt-0.5';
+                marker.textContent = String(idx + 1).padStart(2, '0');
                 const span = document.createElement('span');
                 span.className = 'leading-relaxed text-slate-800 dark:text-slate-200';
                 span.textContent = item;
@@ -1431,6 +1451,8 @@
         let matchSelRight = null;
         let matchMatchedCount = 0;
         let matchMistakes = 0;
+        let matchLives = 3;
+        let matchPenaltyMs = 0;
         let matchStartTime = 0;
         let matchTimerInterval = null;
         let matchBusy = false;
@@ -1459,49 +1481,97 @@
             return clean.slice(0, maxLen - 1).trimEnd() + '…';
         }
 
+        function updateLivesBadge() {
+            const hearts = '❤️'.repeat(Math.max(0, matchLives)) + '🖤'.repeat(Math.max(0, 3 - matchLives));
+            document.getElementById('matchLivesBadge').textContent = hearts;
+        }
+
         function startMatch() {
             if (!currentKit || !currentKit.flashcards || !currentKit.flashcards.length) return;
             if (matchTimerInterval) clearInterval(matchTimerInterval);
 
-            matchPairs = shuffleArr(currentKit.flashcards).slice(0, 6);
+            const allCards = shuffleArr(currentKit.flashcards);
+            matchPairs = allCards.slice(0, 5);
             matchSelLeft = null;
             matchSelRight = null;
             matchMatchedCount = 0;
             matchMistakes = 0;
+            matchLives = 3;
+            matchPenaltyMs = 0;
             matchBusy = false;
 
             document.getElementById('matchFinishedBox').classList.add('hidden');
             document.getElementById('matchArena').classList.remove('hidden');
+            document.getElementById('matchPenaltyBadge').classList.add('hidden');
             document.getElementById('matchPairsBadge').textContent = `Пари: 0 / ${matchPairs.length}`;
             document.getElementById('matchTimerBadge').textContent = '00:00.0';
+            updateLivesBadge();
 
             const leftCol = document.getElementById('matchLeftCol');
             const rightCol = document.getElementById('matchRightCol');
             leftCol.innerHTML = '';
             rightCol.innerHTML = '';
 
-            const leftItems = shuffleArr(matchPairs);
-            const rightItems = shuffleArr(matchPairs);
+            // Build right-side pool with 2 decoy distractors to prevent easy elimination
+            const rightPool = matchPairs.map(c => ({ id: String(c.id), text: c.back }));
+            const usedIds = new Set(matchPairs.map(c => c.id));
+            const extraCards = allCards.filter(c => !usedIds.has(c.id));
+            let decoysAdded = 0;
+            for (const c of extraCards) {
+                if (decoysAdded >= 2) break;
+                rightPool.push({ id: `decoy_c_${c.id}`, text: c.back });
+                decoysAdded++;
+            }
+            if (decoysAdded < 2 && currentKit.quiz) {
+                for (const q of currentKit.quiz) {
+                    for (let idx = 0; idx < q.options.length; idx++) {
+                        if (decoysAdded >= 2) break;
+                        if (idx !== q.correct_index) {
+                            rightPool.push({ id: `decoy_q_${q.id}_${idx}`, text: q.options[idx] });
+                            decoysAdded++;
+                        }
+                    }
+                    if (decoysAdded >= 2) break;
+                }
+            }
 
-            leftItems.forEach(item => {
+            const leftItems = shuffleArr(matchPairs);
+            const rightItems = shuffleArr(rightPool);
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+            leftItems.forEach((item, idx) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.dataset.id = String(item.id);
                 btn.dataset.side = 'left';
-                btn.className = 'apple-card bevel-card btn-tap w-full text-left p-4 rounded-2xl text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug transition';
-                btn.textContent = shortenForTile(item.front, 110);
-                btn.onclick = () => selectMatchTile(btn, 'left', item.id);
+                btn.className = 'apple-card bevel-card btn-tap w-full text-left p-3.5 rounded-2xl border-l-4 border-l-indigo-500 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white leading-snug transition flex items-start space-x-3';
+                const numBadge = document.createElement('span');
+                numBadge.className = 'px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-mono text-[11px] font-bold shrink-0 mt-0.5';
+                numBadge.textContent = String(idx + 1).padStart(2, '0');
+                const txt = document.createElement('span');
+                txt.className = 'flex-1';
+                txt.textContent = shortenForTile(item.front, 110);
+                btn.appendChild(numBadge);
+                btn.appendChild(txt);
+                btn.onclick = () => selectMatchTile(btn, 'left', String(item.id));
                 leftCol.appendChild(btn);
             });
 
-            rightItems.forEach(item => {
+            rightItems.forEach((item, idx) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.dataset.id = String(item.id);
                 btn.dataset.side = 'right';
-                btn.className = 'apple-card bevel-card btn-tap w-full text-left p-4 rounded-2xl text-xs font-normal text-slate-700 dark:text-slate-200 leading-relaxed transition';
-                btn.textContent = shortenForTile(item.back, 145);
-                btn.onclick = () => selectMatchTile(btn, 'right', item.id);
+                btn.className = 'btn-tap w-full text-left p-3.5 rounded-2xl bg-slate-900/[0.04] hover:bg-slate-900/[0.08] dark:bg-slate-950/55 dark:hover:bg-slate-900/75 border border-slate-900/10 dark:border-white/10 border-r-4 border-r-sky-400 text-xs text-slate-700 dark:text-slate-200 leading-relaxed transition flex items-start space-x-3 backdrop-blur-xl';
+                const letBadge = document.createElement('span');
+                letBadge.className = 'w-6 h-6 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-600 dark:text-sky-300 font-mono text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5';
+                letBadge.textContent = letters[idx] || '?';
+                const txt = document.createElement('span');
+                txt.className = 'flex-1';
+                txt.textContent = shortenForTile(item.text, 145);
+                btn.appendChild(letBadge);
+                btn.appendChild(txt);
+                btn.onclick = () => selectMatchTile(btn, 'right', String(item.id));
                 rightCol.appendChild(btn);
             });
 
@@ -1509,8 +1579,44 @@
 
             matchStartTime = performance.now();
             matchTimerInterval = setInterval(() => {
-                document.getElementById('matchTimerBadge').textContent = formatMatchTime(performance.now() - matchStartTime);
+                const elapsed = (performance.now() - matchStartTime) + matchPenaltyMs;
+                document.getElementById('matchTimerBadge').textContent = formatMatchTime(elapsed);
             }, 100);
+        }
+
+        function finishMatch(won) {
+            clearInterval(matchTimerInterval);
+            matchTimerInterval = null;
+            const elapsed = (performance.now() - matchStartTime) + matchPenaltyMs;
+            const formatted = formatMatchTime(elapsed);
+
+            const iconEl = document.getElementById('matchResultIcon');
+            const titleEl = document.getElementById('matchResultTitle');
+            const timeEl = document.getElementById('matchResultTime');
+            const mistEl = document.getElementById('matchResultMistakes');
+
+            if (won) {
+                const bestKey = `studyos_match_best_${currentKit.topic}`;
+                const prevBest = parseFloat(localStorage.getItem(bestKey) || '0');
+                const bestMs = (!prevBest || elapsed < prevBest) ? elapsed : prevBest;
+                localStorage.setItem(bestKey, String(bestMs));
+                iconEl.textContent = '⚡';
+                iconEl.className = 'w-14 h-14 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl';
+                titleEl.textContent = 'Усі пари знайдено!';
+                timeEl.textContent = `Час: ${formatted}`;
+                mistEl.textContent = `Помилок: ${matchMistakes} · Рекорд: ${formatMatchTime(bestMs)}`;
+            } else {
+                iconEl.textContent = '💥';
+                iconEl.className = 'w-14 h-14 mx-auto rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-2xl';
+                titleEl.textContent = 'Спроби вичерпано!';
+                timeEl.textContent = `Знайдено пар: ${matchMatchedCount} з ${matchPairs.length}`;
+                mistEl.textContent = `Час раунду: ${formatted} · Спробуйте ще раз`;
+            }
+
+            setTimeout(() => {
+                document.getElementById('matchArena').classList.add('hidden');
+                document.getElementById('matchFinishedBox').classList.remove('hidden');
+            }, 340);
         }
 
         function setTileSelected(btn, on) {
@@ -1559,34 +1665,31 @@
                     document.getElementById('matchPairsBadge').textContent = `Пари: ${matchMatchedCount} / ${matchPairs.length}`;
 
                     if (matchMatchedCount === matchPairs.length) {
-                        clearInterval(matchTimerInterval);
-                        matchTimerInterval = null;
-                        const elapsed = performance.now() - matchStartTime;
-                        const formatted = formatMatchTime(elapsed);
-                        const bestKey = `studyos_match_best_${currentKit.topic}`;
-                        const prevBest = parseFloat(localStorage.getItem(bestKey) || '0');
-                        const bestMs = (!prevBest || elapsed < prevBest) ? elapsed : prevBest;
-                        localStorage.setItem(bestKey, String(bestMs));
-
-                        setTimeout(() => {
-                            document.getElementById('matchArena').classList.add('hidden');
-                            document.getElementById('matchResultTime').textContent = `Час: ${formatted}`;
-                            document.getElementById('matchResultMistakes').textContent = `Помилок: ${matchMistakes} · Рекорд: ${formatMatchTime(bestMs)}`;
-                            document.getElementById('matchFinishedBox').classList.remove('hidden');
-                        }, 320);
+                        finishMatch(true);
                     }
                 } else {
                     matchMistakes++;
+                    matchLives--;
+                    matchPenaltyMs += 3000;
+                    updateLivesBadge();
                     playSound('review');
                     matchBusy = true;
                     setTileSelected(left.btn, false);
                     setTileSelected(right.btn, false);
                     left.btn.classList.add('tile-shake', 'ring-2', 'ring-rose-500');
                     right.btn.classList.add('tile-shake', 'ring-2', 'ring-rose-500');
+
+                    const penBadge = document.getElementById('matchPenaltyBadge');
+                    penBadge.classList.remove('hidden');
+                    setTimeout(() => penBadge.classList.add('hidden'), 1100);
+
                     setTimeout(() => {
                         left.btn.classList.remove('tile-shake', 'ring-2', 'ring-rose-500');
                         right.btn.classList.remove('tile-shake', 'ring-2', 'ring-rose-500');
                         matchBusy = false;
+                        if (matchLives <= 0) {
+                            finishMatch(false);
+                        }
                     }, 380);
                 }
             }
@@ -1690,51 +1793,72 @@
             }
         });
 
-        function closeAllCustomSelects() {
-            document.querySelectorAll('.custom-select.open').forEach(el => {
-                el.classList.remove('open');
-                el.querySelector('button')?.setAttribute('aria-expanded', 'false');
-            });
+        function openGenSettings(e) {
+            if (e) e.stopPropagation();
+            syncGenSettingsUI();
+            document.getElementById('genSettingsModal').classList.remove('hidden');
         }
 
-        function toggleCustomSelect(wrapId, e) {
-            if (e) e.stopPropagation();
-            const wrap = document.getElementById(wrapId);
-            const wasOpen = wrap.classList.contains('open');
-            closeAllCustomSelects();
-            if (!wasOpen) {
-                wrap.classList.add('open');
-                wrap.querySelector('button')?.setAttribute('aria-expanded', 'true');
+        function closeGenSettings() {
+            document.getElementById('genSettingsModal').classList.add('hidden');
+        }
+
+        function setGenCount(kind, val) {
+            const num = parseInt(val, 10) || 0;
+            if (kind === 'cards') {
+                document.getElementById('inputCardCount').value = String(num);
+            } else {
+                document.getElementById('inputQuizCount').value = String(num);
             }
+            syncGenSettingsUI();
         }
 
-        function pickCustomOption(wrapId, inputId, labelId, value, label, e) {
-            if (e) e.stopPropagation();
-            document.getElementById(inputId).value = value;
-            document.getElementById(labelId).textContent = label;
-            const menu = document.getElementById(wrapId).querySelector('.custom-select-menu');
-            menu.querySelectorAll('button').forEach(btn => {
-                const isSel = btn.dataset.val === value;
-                btn.classList.toggle('bg-indigo-500/15', isSel);
-                btn.classList.toggle('dark:bg-white/10', isSel);
-                btn.classList.toggle('text-slate-900', isSel);
-                btn.classList.toggle('dark:text-white', isSel);
-                const existingCheck = btn.querySelector('.sel-check');
-                if (existingCheck) existingCheck.remove();
-                if (isSel) {
-                    const chk = document.createElement('span');
-                    chk.className = 'sel-check text-sky-500 dark:text-sky-400 text-[10px]';
-                    chk.textContent = '✓';
-                    btn.appendChild(chk);
-                }
+        function resetGenSettings() {
+            document.getElementById('inputCardCount').value = '0';
+            document.getElementById('inputQuizCount').value = '0';
+            syncGenSettingsUI();
+        }
+
+        function syncGenSettingsUI() {
+            const cVal = parseInt(document.getElementById('inputCardCount').value, 10) || 0;
+            const qVal = parseInt(document.getElementById('inputQuizCount').value, 10) || 0;
+
+            document.getElementById('rangeCardCount').value = cVal;
+            document.getElementById('rangeQuizCount').value = qVal;
+            document.getElementById('modalCardsVal').textContent = cVal === 0 ? '✨ Авто' : `${cVal} шт.`;
+            document.getElementById('modalQuizVal').textContent = qVal === 0 ? '✨ Авто' : `${qVal} шт.`;
+
+            const pill = document.getElementById('settingsSummaryPill');
+            if (cVal === 0 && qVal === 0) {
+                pill.textContent = '✨ Авто';
+            } else {
+                const cTxt = cVal === 0 ? 'Авто' : `${cVal}к`;
+                const qTxt = qVal === 0 ? 'Авто' : `${qVal}т`;
+                pill.textContent = `${cTxt} · ${qTxt}`;
+            }
+
+            document.querySelectorAll('.preset-card-btn').forEach(b => {
+                const active = parseInt(b.dataset.presetCards, 10) === cVal;
+                b.className = 'preset-card-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border transition ' +
+                    (active
+                        ? 'bg-indigo-500/20 text-indigo-700 dark:text-sky-300 border-indigo-500/40'
+                        : 'bg-slate-900/5 dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 border-slate-900/10 dark:border-white/10 hover:bg-slate-900/10 dark:hover:bg-white/10');
             });
-            closeAllCustomSelects();
+
+            document.querySelectorAll('.preset-quiz-btn').forEach(b => {
+                const active = parseInt(b.dataset.presetQuiz, 10) === qVal;
+                b.className = 'preset-quiz-btn px-2.5 py-1 rounded-lg text-[11px] font-medium border transition ' +
+                    (active
+                        ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40'
+                        : 'bg-slate-900/5 dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 border-slate-900/10 dark:border-white/10 hover:bg-slate-900/10 dark:hover:bg-white/10');
+            });
         }
 
         // Startup Initialization
         window.addEventListener('DOMContentLoaded', async () => {
             setMood(activeMood, true);
             syncSoundIcons();
+            syncGenSettingsUI();
             localStorage.removeItem('study_copilot_gemini_key');
 
             const inputText = document.getElementById('inputText');
@@ -1743,10 +1867,9 @@
             document.addEventListener('click', () => {
                 const dd = document.getElementById('historyDropdown');
                 if (dd && !dd.classList.contains('hidden')) dd.classList.add('hidden');
-                closeAllCustomSelects();
             });
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeAllCustomSelects();
+                if (e.key === 'Escape') closeGenSettings();
             });
 
             try {
