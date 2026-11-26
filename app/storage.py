@@ -2,7 +2,7 @@ import sqlite3
 import os
 import json
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple, Dict, Any
 from app.models import StudyKitResponse, SessionRecord, ChatMessage
 from app.telemetry import logger
 
@@ -31,9 +31,26 @@ class Storage:
                     data_json TEXT NOT NULL,
                     raw_text TEXT DEFAULT '',
                     chat_json TEXT DEFAULT '[]',
-                    pinned INTEGER DEFAULT 0
+                    pinned INTEGER DEFAULT 0,
+                    user_id TEXT DEFAULT NULL
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    google_id TEXT,
+                    email TEXT
+                )
+            """)
+            u_cols = [r[1] for r in cursor.execute("PRAGMA table_info(users)").fetchall()]
+            if "google_id" not in u_cols:
+                cursor.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
+            if "email" not in u_cols:
+                cursor.execute("ALTER TABLE users ADD COLUMN email TEXT")
             cols = [r[1] for r in cursor.execute("PRAGMA table_info(sessions)").fetchall()]
             if "raw_text" not in cols:
                 cursor.execute("ALTER TABLE sessions ADD COLUMN raw_text TEXT DEFAULT ''")
@@ -41,8 +58,74 @@ class Storage:
                 cursor.execute("ALTER TABLE sessions ADD COLUMN chat_json TEXT DEFAULT '[]'")
             if "pinned" not in cols:
                 cursor.execute("ALTER TABLE sessions ADD COLUMN pinned INTEGER DEFAULT 0")
+            if "user_id" not in cols:
+                cursor.execute("ALTER TABLE sessions ADD COLUMN user_id TEXT DEFAULT NULL")
             conn.commit()
             logger.info("Storage initialized successfully")
+
+    @staticmethod
+    def _owner_clause(user_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
+        if user_id:
+            return "user_id = ?", (user_id,)
+        return "user_id IS NULL", ()
+
+    # --- Users ---
+    def create_user(self, user_id: str, username: str, password_hash: str, salt: str) -> Dict[str, str]:
+        with self._get_connection() as conn:
+            conn.execute(
+                "INSERT INTO users (id, username, password_hash, salt, created_at) VALUES (?, ?, ?, ?, ?)",
+                (user_id, username.lower(), password_hash, salt, datetime.utcnow().isoformat())
+            )
+            conn.commit()
+        return {"id": user_id, "username": username}
+
+    def get_user_by_username(self, username: str) -> Optional[Dict[str, str]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT id, username, password_hash, salt FROM users WHERE LOWER(username) = LOWER(?)",
+                (username,)
+            ).fetchone()
+            if not row:
+                return None
+            return {"id": row[0], "username": row[1], "password_hash": row[2], "salt": row[3]}
+
+    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, str]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT id, username FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not row:
+                return None
+            return {"id": row[0], "username": row[1]}
+
+    def upsert_google_user(self, google_id: str, email: str, name: str = "") -> Dict[str, str]:
+        import uuid as _uuid
+        import re as _re
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT id, username FROM users WHERE google_id = ?", (google_id,)).fetchone()
+            if row:
+                return {"id": row[0], "username": row[1]}
+
+            if email:
+                row_email = conn.execute("SELECT id, username FROM users WHERE LOWER(email) = LOWER(?)", (email,)).fetchone()
+                if row_email:
+                    conn.execute("UPDATE users SET google_id = ? WHERE id = ?", (google_id, row_email[0]))
+                    conn.commit()
+                    return {"id": row_email[0], "username": row_email[1]}
+
+            base_raw = (email.split("@")[0] if email else name) or "user"
+            base = _re.sub(r"[^a-zA-Z0-9_.-]", "", base_raw).lower()[:24] or "user"
+            candidate = base
+            suffix = 1
+            while conn.execute("SELECT 1 FROM users WHERE LOWER(username) = LOWER(?)", (candidate,)).fetchone():
+                candidate = f"{base[:20]}_{suffix}"
+                suffix += 1
+
+            uid = f"usr-{_uuid.uuid4().hex[:12]}"
+            conn.execute(
+                "INSERT INTO users (id, username, password_hash, salt, created_at, google_id, email) VALUES (?, ?, '', '', ?, ?, ?)",
+                (uid, candidate, datetime.utcnow().isoformat(), google_id, email)
+            )
+            conn.commit()
+            return {"id": uid, "username": candidate}
 
     def is_healthy(self) -> bool:
         try:
@@ -53,12 +136,12 @@ class Storage:
             logger.error(f"Storage health check failed: {e}")
             return False
 
-    def save_session(self, kit: StudyKitResponse, raw_text: str):
+    def save_session(self, kit: StudyKitResponse, raw_text: str, user_id: Optional[str] = None):
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO sessions (id, created_at, topic, text_length, card_count, quiz_count, data_json, raw_text)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO sessions (id, created_at, topic, text_length, card_count, quiz_count, data_json, raw_text, user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 kit.request_id,
                 datetime.utcnow().isoformat(),
@@ -67,15 +150,17 @@ class Storage:
                 len(kit.flashcards),
                 len(kit.quiz),
                 kit.model_dump_json(),
-                raw_text[:60000]
+                raw_text[:60000],
+                user_id
             ))
             conn.commit()
             logger.info(f"Saved session {kit.request_id} to database")
 
-    def get_session(self, session_id: str) -> Optional[StudyKitResponse]:
+    def get_session(self, session_id: str, user_id: Optional[str] = None) -> Optional[StudyKitResponse]:
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT data_json, chat_json FROM sessions WHERE id = ?", (session_id,))
+            cursor.execute(f"SELECT data_json, chat_json FROM sessions WHERE id = ? AND {clause}", (session_id, *params))
             row = cursor.fetchone()
             if row:
                 data = json.loads(row[0])
@@ -84,19 +169,21 @@ class Storage:
                 return StudyKitResponse(**data)
             return None
 
-    def get_session_text(self, session_id: str) -> str:
+    def get_session_text(self, session_id: str, user_id: Optional[str] = None) -> str:
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT raw_text FROM sessions WHERE id = ?", (session_id,))
+            cursor.execute(f"SELECT raw_text FROM sessions WHERE id = ? AND {clause}", (session_id, *params))
             row = cursor.fetchone()
             return (row[0] or "") if row else ""
 
-    def append_chat_exchange(self, session_id: str, question: str, answer: str):
+    def append_chat_exchange(self, session_id: str, question: str, answer: str, user_id: Optional[str] = None):
         if not session_id:
             return
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT chat_json FROM sessions WHERE id = ?", (session_id,))
+            cursor.execute(f"SELECT chat_json FROM sessions WHERE id = ? AND {clause}", (session_id, *params))
             row = cursor.fetchone()
             if not row:
                 return
@@ -104,27 +191,30 @@ class Storage:
             history.append({"role": "user", "text": question})
             history.append({"role": "assistant", "text": answer})
             cursor.execute(
-                "UPDATE sessions SET chat_json = ? WHERE id = ?",
-                (json.dumps(history, ensure_ascii=False), session_id)
+                f"UPDATE sessions SET chat_json = ? WHERE id = ? AND {clause}",
+                (json.dumps(history, ensure_ascii=False), session_id, *params)
             )
             conn.commit()
 
-    def clear_chat_history(self, session_id: str):
+    def clear_chat_history(self, session_id: str, user_id: Optional[str] = None):
         if not session_id:
             return
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
-            conn.execute("UPDATE sessions SET chat_json = '[]' WHERE id = ?", (session_id,))
+            conn.execute(f"UPDATE sessions SET chat_json = '[]' WHERE id = ? AND {clause}", (session_id, *params))
             conn.commit()
 
-    def list_recent_sessions(self, limit: int = 30) -> List[SessionRecord]:
+    def list_recent_sessions(self, limit: int = 30, user_id: Optional[str] = None) -> List[SessionRecord]:
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT id, created_at, topic, text_length, card_count, quiz_count, COALESCE(pinned, 0)
                 FROM sessions
+                WHERE {clause}
                 ORDER BY COALESCE(pinned, 0) DESC, created_at DESC
                 LIMIT ?
-            """, (limit,))
+            """, (*params, limit))
             rows = cursor.fetchall()
             return [
                 SessionRecord(
@@ -139,20 +229,22 @@ class Storage:
                 for r in rows
             ]
 
-    def delete_session(self, session_id: str) -> bool:
+    def delete_session(self, session_id: str, user_id: Optional[str] = None) -> bool:
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
-            cur = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            cur = conn.execute(f"DELETE FROM sessions WHERE id = ? AND {clause}", (session_id, *params))
             conn.commit()
             return cur.rowcount > 0
 
-    def toggle_pin_session(self, session_id: str) -> Optional[bool]:
+    def toggle_pin_session(self, session_id: str, user_id: Optional[str] = None) -> Optional[bool]:
+        clause, params = self._owner_clause(user_id)
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT COALESCE(pinned, 0) FROM sessions WHERE id = ?", (session_id,))
+            cursor.execute(f"SELECT COALESCE(pinned, 0) FROM sessions WHERE id = ? AND {clause}", (session_id, *params))
             row = cursor.fetchone()
             if not row:
                 return None
             new_val = 0 if row[0] else 1
-            cursor.execute("UPDATE sessions SET pinned = ? WHERE id = ?", (new_val, session_id))
+            cursor.execute(f"UPDATE sessions SET pinned = ? WHERE id = ? AND {clause}", (new_val, session_id, *params))
             conn.commit()
             return bool(new_val)

@@ -31,7 +31,7 @@ class StudyService:
         )
         return LLMGateway(settings=override_settings)
 
-    async def process_study_material(self, req: StudyRequest, req_id: str = None) -> StudyKitResponse:
+    async def process_study_material(self, req: StudyRequest, req_id: str = None, user_id: Optional[str] = None) -> StudyKitResponse:
         current_id = req_id or get_current_request_id() or f"req-{uuid.uuid4().hex[:8]}"
         logger.info(f"StudyService executing business scenario for request {current_id}")
 
@@ -69,20 +69,20 @@ class StudyService:
 
         # 5. Persist to storage
         try:
-            self.storage.save_session(response, raw_text=req.text)
+            self.storage.save_session(response, raw_text=req.text, user_id=user_id)
         except Exception as e:
             logger.warning(f"Could not persist session to storage: {e}")
 
         logger.info(f"StudyService finished successfully for {current_id}")
         return response
 
-    async def answer_lecture_question(self, req: ChatRequest, req_id: str = None) -> ChatResponse:
+    async def answer_lecture_question(self, req: ChatRequest, req_id: str = None, user_id: Optional[str] = None) -> ChatResponse:
         current_id = req_id or get_current_request_id() or f"req-{uuid.uuid4().hex[:8]}"
         active_gateway = self._resolve_gateway(req.provider)
 
         context_text = (req.context_text or "").strip()
         if not context_text and req.session_id:
-            context_text = self.storage.get_session_text(req.session_id)
+            context_text = self.storage.get_session_text(req.session_id, user_id=user_id)
 
         condensed_ctx = self.orchestrator.condense_text_for_llm(context_text) if context_text else ""
         history_dicts = [{"role": m.role, "text": m.text} for m in req.history]
@@ -95,7 +95,7 @@ class StudyService:
         )
         if req.session_id:
             try:
-                self.storage.append_chat_exchange(req.session_id, req.question, answer)
+                self.storage.append_chat_exchange(req.session_id, req.question, answer, user_id=user_id)
             except Exception as e:
                 logger.warning(f"Could not persist chat exchange for {req.session_id}: {e}")
         return ChatResponse(request_id=current_id, answer=answer)

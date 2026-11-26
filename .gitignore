@@ -17,6 +17,7 @@ htmlcov/
 # Local Environment & Secrets
 .env
 *.local
+data/.auth_secret
 
 # Database & Logs
 *.db

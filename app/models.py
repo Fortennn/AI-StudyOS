@@ -91,3 +91,16 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     request_id: str
     answer: str
+
+# --- Auth Models ---
+class AuthRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_.-]+$")
+    password: str = Field(..., min_length=4, max_length=128)
+
+class UserPublic(BaseModel):
+    id: str
+    username: str
+
+class AuthResponse(BaseModel):
+    user: Optional[UserPublic] = None
+    google_enabled: bool = False
