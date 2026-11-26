@@ -10,7 +10,16 @@ class MockProvider(LLMProvider):
         self.failure_rate = failure_rate
         self.delay_ms = delay_ms
 
-    async def generate_structured(self, prompt: str, topic: str, card_count: int, quiz_count: int) -> Dict[str, Any]:
+    async def generate_structured(
+        self,
+        prompt: str,
+        topic: str,
+        card_count: int,
+        quiz_count: int,
+        system_instruction: str = "",
+        temperature: float = 0.2,
+        max_tokens: int = 8192,
+    ) -> Dict[str, Any]:
         # Simulate network latency
         if self.delay_ms > 0:
             await asyncio.sleep(self.delay_ms / 1000.0)
@@ -23,9 +32,13 @@ class MockProvider(LLMProvider):
             if kind == "timeout":
                 raise ProviderError(kind="timeout", message="Час очікування відповіді провайдера вичерпано (Mock Timeout)", retryable=True)
             elif kind == "rate_limit":
-                raise ProviderError(kind="rate_limit", message="Перевищено ліміт запитів провайдера (Mock 429)", retryable=True)
+                raise ProviderError(kind="rate_limit", message="Перевищено ліміт запитів провайдера (Mock 429)", retryable=True, retry_after=2)
             elif kind == "invalid_json":
                 raise ProviderError(kind="invalid_json", message="Провайдер повернув некоректний JSON (Mock Malformed)", retryable=False)
+            elif kind == "auth":
+                raise ProviderError(kind="auth", message="Невірний або прострочений API-ключ провайдера (Mock 401)", retryable=False)
+            elif kind == "mid_stream":
+                raise ProviderError(kind="mid_stream", message="З'єднання з провайдером обірвалося посеред відповіді (Mock Mid-Stream)", retryable=True)
             else:
                 raise ProviderError(kind="provider_unavailable", message="Провайдер тимчасово недоступний (Mock 503)", retryable=True)
 

@@ -14,6 +14,8 @@ class StudyRequest(BaseModel):
 class StudySummary(BaseModel):
     tldr: str = Field(..., description="Стисле резюме конспекту (3-4 речення)")
     key_takeaways: List[str] = Field(..., description="Ключові тези або формули")
+    insufficient_data: bool = Field(default=False, description="True, якщо матеріалу недостатньо для побудови комплекту")
+    missing_info: Optional[str] = Field(default=None, description="Чого саме бракує у вхідному матеріалі")
 
 class FlashcardItem(BaseModel):
     id: int = Field(..., description="Унікальний порядковий номер картки")
@@ -47,6 +49,8 @@ class StudyKitResponse(BaseModel):
     quiz: List[QuizItem]
     true_false: List[TrueFalseItem] = Field(default_factory=list)
     chat_history: List[ChatMessage] = Field(default_factory=list)
+    provider_kind: Literal["main", "fallback", "cache", "mock", "recorded"] = "mock"
+    checks: List[str] = Field(default_factory=lambda: ["schema", "rules", "content"])
 
 # --- Error Contract ---
 class ErrorDetail(BaseModel):
@@ -54,6 +58,7 @@ class ErrorDetail(BaseModel):
     message: str
     retryable: bool
     request_id: str
+    fields: Optional[List[Dict[str, str]]] = None
 
 class ErrorResponse(BaseModel):
     error: ErrorDetail

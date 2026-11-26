@@ -4,6 +4,7 @@ import re
 from typing import Dict, Any, Optional, List
 import httpx
 from app.providers.base import LLMProvider, ProviderError
+from app.prompts import render_study_prompt
 from app.telemetry import logger
 
 _SHARED_CLIENT: Optional[httpx.AsyncClient] = None
@@ -40,7 +41,16 @@ class GeminiProvider(LLMProvider):
         self.model = m
         self.timeout_s = timeout_s
 
-    async def generate_structured(self, prompt: str, topic: str, card_count: int, quiz_count: int) -> Dict[str, Any]:
+    async def generate_structured(
+        self,
+        prompt: str,
+        topic: str,
+        card_count: int,
+        quiz_count: int,
+        system_instruction: str = "",
+        temperature: float = 0.2,
+        max_tokens: int = 8192,
+    ) -> Dict[str, Any]:
         if not self.api_key:
             raise ProviderError(
                 kind="missing_api_key",
@@ -48,50 +58,19 @@ class GeminiProvider(LLMProvider):
                 retryable=False
             )
 
-        # Standardize model name
-        clean_model = self.model
-        if clean_model.startswith("models/"):
-            clean_model = clean_model.replace("models/", "")
+        clean_model = self.model.replace("models/", "")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={self.api_key}"
-
-        # Determine counts if auto
-        if card_count > 0:
-            c_req = f"РІВНО {card_count} флеш-карток (масив flashcards має містити {card_count} елементів з id 1..{card_count})"
+        if not system_instruction:
+            system_instruction, user_content, meta = render_study_prompt(
+                material=prompt,
+                topic=topic,
+                card_count=card_count,
+                quiz_count=quiz_count,
+            )
+            temperature = meta.get("temperature", temperature)
+            max_tokens = meta.get("max_tokens", max_tokens)
         else:
-            c_req = "оптимальну кількість карток (від 5 до 20 залежно від насиченості тексту)"
-
-        if quiz_count > 0:
-            q_req = f"РІВНО {quiz_count} тестових питань (масив quiz має містити {quiz_count} елементів з id 1..{quiz_count})"
-        else:
-            q_req = "оптимальну кількість тестових питань (від 4 до 10)"
-
-        system_instruction = (
-            "Ти — академічний тьютор. Трансформуй конспект у структурований навчальний комплект (JSON).\n"
-            "Правила:\n"
-            "1. Мова відповіді = мова тексту.\n"
-            "2. Summary (адаптуй структуру й обсяг під складність та щільність лекції, без води та шаблонних фраз!):\n"
-            "   - tldr: обери оптимальну глибину (для короткої нотатки 2-3 концентровані речення, для насиченої лекції — розгорнуте концептуальне резюме з головними означеннями, умовами та формулою у LaTeX).\n"
-            "   - key_takeaways: самостійно визнач оптимальну кількість тез (від 3 до 12+ залежно від обсягу матеріалу) так, щоб охопити всі ключові формули ($...$ / $$...$$), теореми, алгоритми, граничні випадки та пастки без повторів.\n"
-            "3. Картки: атомарні запитання; back = суть (1-2 речення) + короткий приклад/формула + типова пастка.\n"
-            "4. Категорії карток: 'Термін' | 'Принцип дії' | 'Формула / Код' | 'Пастка на іспиті' | 'Порівняння'.\n"
-            "5. Квіз: 4 правдоподібні варіанти та коротке пояснення.\n"
-            "6. Правда чи Пастка (true_false): 6-8 коротких тверджень за лекцією (половина істинні, половина з хитрою підміною умови, знака, степеня або терміна) + коротке пояснення correction.\n"
-            "7. Усі математичні формули, степені та символи оформлюй у LaTeX: $...$ або $$...$$.\n"
-            "8. Лише факти з тексту, без вигадок.\n"
-            "9. СУВОРЕ ОБМЕЖЕННЯ КІЛЬКОСТІ: якщо користувач задав точне число N карток або M питань — згенеруй РІВНО N карток і РІВНО M питань (розглядай різні аспекти, деталі, порівняння та практичні наслідки матеріалу, не зупиняйся на 4-5).\n\n"
-            "Схема JSON (без markdown):\n"
-            '{"summary":{"tldr":"string (адаптивне змістовне резюме з формулами)","key_takeaways":["string (оптимальна кількість конкретних фактів, формул і правил)"]},'
-            '"flashcards":[{"id":1,"front":"string","back":"string","category":"Термін"}],'
-            '"quiz":[{"id":1,"question":"string","options":["A","B","C","D"],"correct_index":0,"explanation":"string"}],'
-            '"true_false":[{"id":1,"statement":"string","is_true":true,"correction":"string"}]}'
-        )
-
-        user_content = (
-            f"Тема: {topic}.\n"
-            f"Матеріал:\n{prompt}\n\n"
-            f"ОБОВ'ЯЗКОВА ВИМОГА ДО КІЛЬКОСТІ: {c_req}; {q_req}."
-        )
+            user_content = prompt
 
         payload = {
             "systemInstruction": {
@@ -104,8 +83,8 @@ class GeminiProvider(LLMProvider):
                 }
             ],
             "generationConfig": {
-                "temperature": 0.2,
-                "maxOutputTokens": 8192,
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
                 "responseMimeType": "application/json",
                 "thinkingConfig": {
                     "thinkingBudget": 0

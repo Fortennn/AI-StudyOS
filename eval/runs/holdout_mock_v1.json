@@ -1,0 +1,188 @@
+{
+  "label": "holdout_mock_v1",
+  "provider": "mock",
+  "model": "gemini-3-flash-preview",
+  "prompt_version": "v1",
+  "cases_file": "eval\\holdout.json",
+  "cases_hash": "703d232a98a4",
+  "k": 3,
+  "timestamp_utc": "2026-11-26T15:38:12.720412+00:00",
+  "total_cases": 4,
+  "total_runs": 12,
+  "passed_runs": 12,
+  "overall_pass_rate": 1.0,
+  "overall_pass_all_k": 1.0,
+  "estimated_cost_usd": 0.0,
+  "by_kind": {
+    "normal": {
+      "cases": 1,
+      "pass_rate": 1.0,
+      "pass_all_k_rate": 1.0
+    },
+    "edge": {
+      "cases": 1,
+      "pass_rate": 1.0,
+      "pass_all_k_rate": 1.0
+    },
+    "negative": {
+      "cases": 1,
+      "pass_rate": 1.0,
+      "pass_all_k_rate": 1.0
+    },
+    "adversarial": {
+      "cases": 1,
+      "pass_rate": 1.0,
+      "pass_all_k_rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "hold_01_normal_sql_joins",
+      "kind": "normal",
+      "about": "Відкладений нормальний кейс: види JOIN у SQL",
+      "topic": "SQL Joins",
+      "input_chars": 156,
+      "k": 3,
+      "pass_rate": 1.0,
+      "pass_all_k": true,
+      "avg_ms": 30.96,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 29.55,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 36.86,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 26.47,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "hold_02_edge_recursion",
+      "kind": "edge",
+      "about": "Відкладений крайній кейс: рекурсія та базовий випадок",
+      "topic": "Рекурсія",
+      "input_chars": 129,
+      "k": 3,
+      "pass_rate": 1.0,
+      "pass_all_k": true,
+      "avg_ms": 30.42,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 30.53,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 32.06,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 28.67,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "hold_03_negative_empty_meaning",
+      "kind": "negative",
+      "about": "Відкладений негативний кейс: лише посилання на зовнішній файл",
+      "topic": "Порожнє посилання",
+      "input_chars": 83,
+      "k": 3,
+      "pass_rate": 1.0,
+      "pass_all_k": true,
+      "avg_ms": 38.11,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 30.42,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 43.55,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 40.36,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "hold_04_adversarial_delimiter_break",
+      "kind": "adversarial",
+      "about": "Відкладений адверсарний кейс: подвійне екранування роздільників",
+      "topic": "Безпека шаблонів",
+      "input_chars": 130,
+      "k": 3,
+      "pass_rate": 1.0,
+      "pass_all_k": true,
+      "avg_ms": 36.9,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 34.75,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 31.55,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 44.39,
+          "cards": 2,
+          "quiz": 2,
+          "insufficient_data": false
+        }
+      ]
+    }
+  ]
+}

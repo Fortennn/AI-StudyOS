@@ -23,7 +23,9 @@ data/.auth_secret
 *.db
 *.sqlite3
 data/*.db
-logs/*.log
+data/budget*.json
+logs/*.log*
+logs/*.jsonl*
 
 # Word & Office documents
 *.docx

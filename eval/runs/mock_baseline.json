@@ -1,0 +1,216 @@
+{
+  "label": "mock_baseline",
+  "provider": "mock",
+  "k": 3,
+  "timestamp_utc": "2026-11-26T15:10:05.576927+00:00",
+  "total_cases": 6,
+  "total_runs": 18,
+  "passed_runs": 18,
+  "overall_pass_rate": 1.0,
+  "cases": [
+    {
+      "id": "case_01_db_normalization",
+      "topic": "Реляційні бази даних",
+      "input_chars": 292,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 33.85,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 15.24,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 46.92,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 39.38,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "case_02_os_processes",
+      "topic": "Операційні системи",
+      "input_chars": 319,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 33.63,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 30.43,
+          "cards": 5,
+          "quiz": 4,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 37.15,
+          "cards": 5,
+          "quiz": 4,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 33.3,
+          "cards": 5,
+          "quiz": 4,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "case_03_numerical_diff",
+      "topic": "Чисельні методи",
+      "input_chars": 272,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 37.6,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 43.7,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 45.07,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 24.02,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "case_04_graphs_bfs_dfs",
+      "topic": "Алгоритми на графах",
+      "input_chars": 252,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 30.55,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 26.53,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 35.31,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 29.8,
+          "cards": 4,
+          "quiz": 3,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "case_05_http_rest",
+      "topic": "Веб-архітектура та HTTP",
+      "input_chars": 308,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 37.98,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 40.79,
+          "cards": 3,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 34.92,
+          "cards": 3,
+          "quiz": 3,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 38.23,
+          "cards": 3,
+          "quiz": 3,
+          "insufficient_data": false
+        }
+      ]
+    },
+    {
+      "id": "case_06_noisy_fragment",
+      "topic": "Фрагмент без контексту",
+      "input_chars": 78,
+      "k": 3,
+      "pass_rate": 1.0,
+      "avg_ms": 27.45,
+      "runs": [
+        {
+          "run": 1,
+          "passed": true,
+          "elapsed_ms": 27.12,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 2,
+          "passed": true,
+          "elapsed_ms": 20.15,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        },
+        {
+          "run": 3,
+          "passed": true,
+          "elapsed_ms": 35.08,
+          "cards": 3,
+          "quiz": 2,
+          "insufficient_data": false
+        }
+      ]
+    }
+  ]
+}

@@ -22,6 +22,7 @@ from app.telemetry import logger, request_id_ctx
 from app.storage import Storage
 from app.gateway import LLMGateway
 from app.orchestration import StudyOrchestrator
+from app.resilience import UserRateLimiter
 from app.service import StudyService
 from app.providers.base import ProviderError
 from app.extractor import extract_text_from_file
@@ -32,8 +33,10 @@ storage = Storage(db_path=settings.db_path)
 gateway = LLMGateway(settings=settings)
 orchestrator = StudyOrchestrator()
 study_service = StudyService(gateway=gateway, orchestrator=orchestrator, storage=storage)
+user_rate_limiter = UserRateLimiter(max_requests=settings.user_rate_limit_rpm, window_seconds=60.0)
 
 START_TIME = time.time()
+_IDEMPOTENCY_CACHE: dict[tuple[str, str], StudyKitResponse] = {}
 
 app = FastAPI(
     title="AI Study Copilot API",
@@ -66,10 +69,20 @@ async def provider_error_handler(request: Request, exc: ProviderError):
     
     status_map = {
         "rate_limit": status.HTTP_429_TOO_MANY_REQUESTS,
+        "user_rate_limit": status.HTTP_429_TOO_MANY_REQUESTS,
+        "budget": status.HTTP_429_TOO_MANY_REQUESTS,
         "timeout": status.HTTP_504_GATEWAY_TIMEOUT,
         "provider_unavailable": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "circuit_open": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "ai_disabled": status.HTTP_503_SERVICE_UNAVAILABLE,
         "invalid_json": status.HTTP_502_BAD_GATEWAY,
-        "invalid_schema": status.HTTP_502_BAD_GATEWAY
+        "invalid_schema": status.HTTP_502_BAD_GATEWAY,
+        "invalid_output": status.HTTP_502_BAD_GATEWAY,
+        "mid_stream": status.HTTP_502_BAD_GATEWAY,
+        "auth": status.HTTP_401_UNAUTHORIZED,
+        "missing_api_key": status.HTTP_400_BAD_REQUEST,
+        "recording_missing": status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "internal": status.HTTP_500_INTERNAL_SERVER_ERROR,
     }
     http_status = status_map.get(exc.kind, status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -81,17 +94,26 @@ async def provider_error_handler(request: Request, exc: ProviderError):
             request_id=req_id
         )
     )
-    return JSONResponse(status_code=http_status, content=err.model_dump())
+    headers = {"Retry-After": str(exc.retry_after)} if getattr(exc, "retry_after", None) else None
+    return JSONResponse(status_code=http_status, content=err.model_dump(), headers=headers)
 
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, exc: RequestValidationError):
     req_id = request_id_ctx.get()
+    field_errors = [
+        {
+            "field": str(e["loc"][-1]) if e.get("loc") else "input",
+            "message": str(e.get("msg", "Невірне значення")),
+        }
+        for e in exc.errors()
+    ]
     err = ErrorResponse(
         error=ErrorDetail(
             kind="invalid_input",
             message=f"Помилка валідації вхідних даних: {str(exc.errors()[0]['msg'])}",
             retryable=False,
-            request_id=req_id
+            request_id=req_id,
+            fields=field_errors,
         )
     )
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=err.model_dump())
@@ -102,8 +124,8 @@ async def generic_error_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     err = ErrorResponse(
         error=ErrorDetail(
-            kind="internal_error",
-            message=f"Внутрішня помилка сервера: {str(exc)}",
+            kind="internal",
+            message="Виникла внутрішня помилка сервера. Зверніться з ідентифікатором запиту.",
             retryable=False,
             request_id=req_id
         )
@@ -126,7 +148,13 @@ async def get_health():
         mode=settings.llm_provider,
         storage="ok" if storage_ok else "error",
         extra={
-            "vector_index": "not_loaded_planned"
+            "vector_index": "not_loaded_planned",
+            "provider": {
+                "name": settings.llm_provider,
+                "model": settings.llm_model,
+                **gateway.breaker.status(),
+            },
+            "ai_enabled": settings.ai_enabled,
         },
         uptime_s=uptime
     )
@@ -337,12 +365,49 @@ async def google_oauth_callback(request: Request, code: str = "", state: str = "
         logger.error(f"Google OAuth callback error: {e}")
         return RedirectResponse(url="/?auth_error=google_failed")
 
+@app.get("/api/ui-config")
+async def get_ui_config():
+    """Exposes server-side validation boundaries and file limits for the UI."""
+    props = StudyRequest.model_json_schema().get("properties", {})
+    text_schema = props.get("text", {})
+    card_schema = props.get("card_count", {})
+    quiz_schema = props.get("quiz_count", {})
+    return {
+        "min_text_length": text_schema.get("minLength", 10),
+        "max_text_length": text_schema.get("maxLength", 250000),
+        "card_count": {"min": card_schema.get("minimum", 0), "max": card_schema.get("maximum", 30)},
+        "quiz_count": {"min": quiz_schema.get("minimum", 0), "max": quiz_schema.get("maximum", 25)},
+        "max_file_mb": 15,
+        "allowed_extensions": [".pdf", ".docx", ".txt"],
+    }
+
+
 @app.post("/api/generate", response_model=StudyKitResponse)
 async def generate_kit(payload: StudyRequest, request: Request):
     """Main scenario: transforms study notes into summary, flashcards and quiz."""
     req_id = request_id_ctx.get()
     uid = _get_current_user_id(request)
-    return await study_service.process_study_material(payload, req_id=req_id, user_id=uid)
+    client_key = uid or (request.client.host if request.client else "anon")
+    user_rate_limiter.check(client_key)
+
+    bypass_cache = request.headers.get("X-Bypass-Cache") == "1"
+    idem_key = (request.headers.get("Idempotency-Key") or "").strip()
+    cache_key = (uid or "anon", idem_key) if idem_key else None
+    if cache_key and not bypass_cache and cache_key in _IDEMPOTENCY_CACHE:
+        cached = _IDEMPOTENCY_CACHE[cache_key].model_copy(update={"provider_kind": "cache"})
+        return cached
+
+    result = await study_service.process_study_material(
+        payload,
+        req_id=req_id,
+        user_id=uid,
+        bypass_cache=bypass_cache,
+    )
+    if cache_key:
+        if len(_IDEMPOTENCY_CACHE) > 200:
+            _IDEMPOTENCY_CACHE.clear()
+        _IDEMPOTENCY_CACHE[cache_key] = result
+    return result
 
 @app.get("/api/history", response_model=List[SessionRecord])
 async def get_history(request: Request):

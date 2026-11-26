@@ -202,7 +202,9 @@
 
                 <!-- Main Textarea -->
                 <div class="px-5 sm:px-6 pt-4 pb-3 relative">
-                    <textarea id="inputText" rows="6" placeholder="Вставте текст лекції або перетягніть сюди PDF, DOCX чи TXT файл..." class="w-full bg-transparent text-slate-900 dark:text-slate-100 text-sm sm:text-[15px] focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none leading-relaxed subtle-scroll"></textarea>
+                    <label for="inputText" class="sr-only">Текст конспекту або лекції</label>
+                    <textarea id="inputText" rows="6" aria-describedby="textFieldError" placeholder="Вставте текст лекції або перетягніть сюди PDF, DOCX чи TXT файл..." class="w-full bg-transparent text-slate-900 dark:text-slate-100 text-sm sm:text-[15px] focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none leading-relaxed subtle-scroll"></textarea>
+                    <p id="textFieldError" role="alert" class="hidden mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400"></p>
                 </div>
 
                 <!-- Bottom Composer Toolbar -->
@@ -230,25 +232,41 @@
                     </div>
 
                     <!-- Primary Action Pill (Apple/Linear Monochrome Contrast) -->
-                    <button id="btnGenerate" type="button" onclick="handleGenerate(event)" class="btn-tap ml-auto py-2.5 px-5 sm:px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-semibold text-xs sm:text-sm shadow-lg shadow-black/20 dark:shadow-white/10 flex items-center space-x-2">
-                        <svg id="btnGenIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                        </svg>
-                        <div id="btnGenSpinner" class="hidden w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        <span id="btnText">Сформувати простір</span>
-                    </button>
+                    <div class="ml-auto flex items-center space-x-2">
+                        <button id="btnCancelGen" type="button" onclick="cancelGenerate()" class="hidden btn-tap py-2.5 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-700 dark:text-rose-300 font-semibold text-xs sm:text-sm">
+                            Скасувати
+                        </button>
+                        <button id="btnGenerate" type="button" onclick="handleGenerate(event)" class="btn-tap py-2.5 px-5 sm:px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-semibold text-xs sm:text-sm shadow-lg shadow-black/20 dark:shadow-white/10 flex items-center space-x-2">
+                            <svg id="btnGenIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                            <div id="btnGenSpinner" class="hidden w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                            <span id="btnText">Сформувати простір</span>
+                        </button>
+                    </div>
 
                 </div>
 
             </div>
 
             <!-- Error Box -->
-            <div id="errorBox" role="alert" class="hidden rounded-2xl border border-rose-500/35 bg-rose-500/10 dark:bg-rose-950/55 backdrop-blur-md p-3 text-xs text-rose-800 dark:text-rose-200 flex items-start space-x-2">
-                <span class="shrink-0">⚠️</span>
-                <div>
-                    <span id="errorKind" class="font-bold text-rose-600 dark:text-rose-400 mr-1.5">Помилка</span>
-                    <span id="errorMessage" class="text-rose-700 dark:text-slate-300"></span>
+            <div id="errorBox" role="alert" aria-live="polite" class="hidden rounded-2xl border border-rose-500/35 bg-rose-500/10 dark:bg-rose-950/55 backdrop-blur-md p-3.5 text-xs text-rose-800 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start space-x-2.5">
+                    <span class="shrink-0 text-sm">⚠️</span>
+                    <div class="space-y-1">
+                        <div>
+                            <span id="errorKind" class="font-bold text-rose-600 dark:text-rose-400 mr-1.5">Помилка</span>
+                            <span id="errorMessage" class="text-rose-800 dark:text-slate-200"></span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-rose-700/80 dark:text-slate-400">
+                            <span id="errorNextStep"></span>
+                            <button id="errorReqIdBtn" type="button" onclick="copyErrorRequestId()" class="hidden font-mono px-1.5 py-0.5 rounded bg-slate-900/10 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 transition" title="Копіювати request_id"></button>
+                        </div>
+                    </div>
                 </div>
+                <button id="btnRetryGen" type="button" onclick="handleGenerate(event)" class="hidden shrink-0 btn-tap px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs">
+                    Повторити
+                </button>
             </div>
 
         </section>
@@ -261,8 +279,10 @@
             
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900/10 dark:border-white/[0.08] pb-5">
                 <div>
-                    <div class="flex items-center space-x-2 mb-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25">Готово до вивчення</span>
+                        <span id="hubProviderBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-900/5 dark:bg-white/[0.08] text-slate-600 dark:text-slate-300 border border-slate-900/10 dark:border-white/10">Провайдер: —</span>
+                        <span id="hubChecksBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">Перевірено: schema · rules · content</span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight" id="hubTopic">
                         Архітектура операційних систем
@@ -271,6 +291,17 @@
                 </div>
                 <button type="button" onclick="showView('home')" class="btn-tap self-start sm:self-auto text-xs font-medium px-4 py-2 rounded-xl bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 border border-slate-900/10 dark:border-white/10 transition">
                     ← Інший конспект
+                </button>
+            </div>
+
+            <!-- Insufficient Data Banner (when model signals missing info) -->
+            <div id="insufficientDataBanner" class="hidden rounded-2xl border border-amber-500/40 bg-amber-500/10 dark:bg-amber-950/40 p-4 text-xs sm:text-sm text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                    <div class="font-bold">⚠️ Даних у конспекті недостатньо</div>
+                    <p id="insufficientDataText" class="text-xs opacity-90"></p>
+                </div>
+                <button type="button" onclick="showView('home')" class="shrink-0 btn-tap px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs">
+                    Доповнити текст
                 </button>
             </div>
 
@@ -1236,7 +1267,78 @@
         function handleFileSelect(e) {
             if (e.target.files.length) uploadFile(e.target.files[0]);
         }
+        let uiConfig = {
+            min_text_length: 10,
+            max_text_length: 250000,
+            card_count: { min: 0, max: 30 },
+            quiz_count: { min: 0, max: 25 },
+            max_file_mb: 15,
+            allowed_extensions: ['.pdf', '.docx', '.txt']
+        };
+        let currentIdempotencyKey = (crypto.randomUUID ? crypto.randomUUID() : `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+        let activeGenerateController = null;
+        let lastErrorRequestId = '';
+
+        async function loadUiConfig() {
+            try {
+                const res = await fetch('/api/ui-config');
+                if (!res.ok) return;
+                uiConfig = await res.json();
+                const inputText = document.getElementById('inputText');
+                if (inputText) inputText.maxLength = uiConfig.max_text_length;
+                const rCard = document.getElementById('rangeCardCount');
+                if (rCard) { rCard.min = uiConfig.card_count.min; rCard.max = uiConfig.card_count.max; }
+                const rQuiz = document.getElementById('rangeQuizCount');
+                if (rQuiz) { rQuiz.min = uiConfig.quiz_count.min; rQuiz.max = uiConfig.quiz_count.max; }
+                const fInput = document.getElementById('fileInput');
+                if (fInput && Array.isArray(uiConfig.allowed_extensions)) {
+                    fInput.accept = uiConfig.allowed_extensions.join(',');
+                }
+                updateCharCount();
+            } catch (e) {}
+        }
+        loadUiConfig();
+
+        function resetIdempotencyKey() {
+            currentIdempotencyKey = (crypto.randomUUID ? crypto.randomUUID() : `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+        }
+        document.getElementById('inputText')?.addEventListener('input', () => {
+            resetIdempotencyKey();
+            clearFieldErrors();
+        });
+        document.getElementById('inputTopic')?.addEventListener('input', resetIdempotencyKey);
+
+        function clearFieldErrors() {
+            const fieldErr = document.getElementById('textFieldError');
+            if (fieldErr) {
+                fieldErr.textContent = '';
+                fieldErr.classList.add('hidden');
+            }
+        }
+
+        function showTextFieldError(msg) {
+            const fieldErr = document.getElementById('textFieldError');
+            if (fieldErr) {
+                fieldErr.textContent = msg;
+                fieldErr.classList.remove('hidden');
+            }
+        }
+
         async function uploadFile(file) {
+            clearFieldErrors();
+            document.getElementById('errorBox').classList.add('hidden');
+            const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+            if (!uiConfig.allowed_extensions.includes(ext)) {
+                showErr('invalid_input', `Непідтримуваний формат файлу (${ext}). Дозволено: ${uiConfig.allowed_extensions.join(', ')}`, { retryable: false });
+                clearFile();
+                return;
+            }
+            if (file.size > uiConfig.max_file_mb * 1024 * 1024) {
+                showErr('file_too_large', `Файл завеликий. Максимум: ${uiConfig.max_file_mb} МБ.`, { retryable: false });
+                clearFile();
+                return;
+            }
+
             document.getElementById('dropPrompt').classList.add('hidden');
             document.getElementById('dropLoading').classList.remove('hidden');
             document.getElementById('dropSuccess').classList.add('hidden');
@@ -1247,12 +1349,16 @@
                 const res = await fetch('/api/upload', { method: 'POST', body: fd });
                 const data = await res.json();
                 if (!res.ok) {
-                    showErr(data.error?.kind || "error", data.error?.message || "Помилка файлу");
+                    showErr(data.error?.kind || "error", data.error?.message || "Помилка файлу", {
+                        retryable: Boolean(data.error?.retryable),
+                        requestId: data.error?.request_id || ''
+                    });
                     clearFile();
                     return;
                 }
                 document.getElementById('inputText').value = data.text;
                 document.getElementById('inputTopic').value = data.suggested_topic;
+                resetIdempotencyKey();
                 updateCharCount();
 
                 document.getElementById('dropLoading').classList.add('hidden');
@@ -1261,7 +1367,7 @@
                 document.getElementById('uploadedStats').textContent = `${data.char_count.toLocaleString()} символів`;
                 showToast('Файл успішно зчитано');
             } catch (err) {
-                showErr("upload_error", err.message);
+                showErr("network_error", "Не вдалося зв'язатися із сервером під час завантаження файлу.", { retryable: true });
                 clearFile();
             }
         }
@@ -1276,20 +1382,31 @@
 
         function updateCharCount() {
             const len = document.getElementById('inputText').value.length;
-            document.getElementById('charCount').textContent = `${len.toLocaleString()} / 250 000`;
+            const maxLen = uiConfig.max_text_length || 250000;
+            document.getElementById('charCount').textContent = `${len.toLocaleString()} / ${maxLen.toLocaleString()}`;
         }
 
         function loadQuickSample(e) {
             if (e) triggerRipple(e, e.currentTarget);
             document.getElementById('inputTopic').value = quickSample.topic;
             document.getElementById('inputText').value = quickSample.text;
+            resetIdempotencyKey();
+            clearFieldErrors();
             updateCharCount();
             showToast('Приклад конспекту завантажено', '⚡');
+        }
+
+        function cancelGenerate() {
+            if (activeGenerateController) {
+                activeGenerateController.abort();
+                activeGenerateController = null;
+            }
         }
 
         // Generate Action
         async function handleGenerate(e) {
             const btn = document.getElementById('btnGenerate');
+            const cancelBtn = document.getElementById('btnCancelGen');
             if (e) triggerRipple(e, btn);
 
             const topic = document.getElementById('inputTopic').value.trim() || "Загальна тема";
@@ -1298,20 +1415,37 @@
             const quiz_count = parseInt(document.getElementById('inputQuizCount').value);
 
             document.getElementById('errorBox').classList.add('hidden');
-            if (!text || text.length < 10) {
-                showErr("input_error", "Будь ласка, введіть або завантажте конспект (щонайменше 10 символів).");
+            clearFieldErrors();
+            if (!text || text.length < uiConfig.min_text_length) {
+                const msg = `Будь ласка, введіть або завантажте конспект (щонайменше ${uiConfig.min_text_length} символів).`;
+                showTextFieldError(msg);
+                showErr("invalid_input", msg, { retryable: false });
+                return;
+            }
+            if (text.length > uiConfig.max_text_length) {
+                const msg = `Текст перевищує ліміт (${uiConfig.max_text_length.toLocaleString()} символів).`;
+                showTextFieldError(msg);
+                showErr("invalid_input", msg, { retryable: false });
                 return;
             }
 
             btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+            cancelBtn.classList.remove('hidden');
             document.getElementById('btnGenIcon').classList.add('hidden');
             document.getElementById('btnGenSpinner').classList.remove('hidden');
-            document.getElementById('btnText').textContent = "AI обробляє та генерує...";
+            document.getElementById('btnText').textContent = "Генерація та перевірка...";
+
+            activeGenerateController = new AbortController();
 
             try {
                 const res = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    signal: activeGenerateController.signal,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Idempotency-Key': currentIdempotencyKey
+                    },
                     body: JSON.stringify({
                         text,
                         topic,
@@ -1322,33 +1456,107 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    showErr(data.error?.kind || "error", data.error?.message || "Помилка генерації");
+                    const errObj = data.error || {};
+                    if (Array.isArray(errObj.fields)) {
+                        const textFieldErr = errObj.fields.find(f => f.field === 'text');
+                        if (textFieldErr) showTextFieldError(textFieldErr.message);
+                    }
+                    showErr(errObj.kind || "error", errObj.message || "Помилка генерації", {
+                        retryable: Boolean(errObj.retryable),
+                        requestId: errObj.request_id || ''
+                    });
                     return;
                 }
                 currentKit = data;
                 currentSourceText = text;
                 chatHistory = [];
+                resetIdempotencyKey();
                 playSound('mastered');
                 setupSpace(data);
                 loadHistory();
             } catch (err) {
-                showErr("network_error", err.message);
+                if (err.name === 'AbortError') {
+                    showErr("cancelled", "Запит скасовано користувачем. Введений текст збережено.", { retryable: true });
+                } else {
+                    showErr("network_error", "Втрачено з'єднання із сервером. Перевірте інтернет або роботу сервера.", { retryable: true });
+                }
             } finally {
+                activeGenerateController = null;
                 btn.disabled = false;
+                btn.removeAttribute('aria-busy');
+                cancelBtn.classList.add('hidden');
                 document.getElementById('btnGenIcon').classList.remove('hidden');
                 document.getElementById('btnGenSpinner').classList.add('hidden');
                 document.getElementById('btnText').textContent = "Сформувати простір";
             }
         }
 
-        function showErr(kind, msg) {
-            document.getElementById('errorKind').textContent = kind.toUpperCase();
+        const ERROR_UI_MAP = {
+            invalid_input: { title: "Перевірте поля форми", next: "Виправте підсвічене поле та спробуйте ще раз." },
+            rate_limit: { title: "Забагато запитів", next: "Зачекайте хвилину та натисніть «Повторити»." },
+            budget: { title: "Денний ліміт вичерпано", next: "Повтор сьогодні недоступний — спробуйте завтра або перемкніться на Mock." },
+            timeout: { title: "Сервер не встиг відповісти", next: "Спробуйте повторити або скоротіть обсяг тексту." },
+            provider_unavailable: { title: "AI-сервіс тимчасово недоступний", next: "Натисніть «Повторити» через кілька секунд." },
+            invalid_output: { title: "Некоректна відповідь моделі", next: "Спробуйте уточнити або доповнити вхідний текст." },
+            network_error: { title: "Помилка мережі", next: "Перевірте підключення до інтернету та повторіть запит." },
+            cancelled: { title: "Запит скасовано", next: "Можете змінити текст або запустити генерацію знову." }
+        };
+
+        function copyErrorRequestId() {
+            if (!lastErrorRequestId) return;
+            navigator.clipboard?.writeText(lastErrorRequestId);
+            showToast('request_id скопійовано', '📋');
+        }
+
+        function showErr(kind, msg, opts = {}) {
+            const mapped = ERROR_UI_MAP[kind] || { title: "Помилка виконання", next: "Збережіть request_id та спробуйте змінити параметри." };
+            document.getElementById('errorKind').textContent = mapped.title;
             document.getElementById('errorMessage').textContent = msg;
+            document.getElementById('errorNextStep').textContent = mapped.next;
+
+            const reqBtn = document.getElementById('errorReqIdBtn');
+            lastErrorRequestId = opts.requestId || '';
+            if (lastErrorRequestId) {
+                reqBtn.textContent = `ID: ${lastErrorRequestId}`;
+                reqBtn.classList.remove('hidden');
+            } else {
+                reqBtn.classList.add('hidden');
+            }
+
+            const retryBtn = document.getElementById('btnRetryGen');
+            if (opts.retryable) retryBtn.classList.remove('hidden');
+            else retryBtn.classList.add('hidden');
+
             document.getElementById('errorBox').classList.remove('hidden');
         }
 
+        const PROVIDER_LABELS = {
+            main: "Основна модель",
+            fallback: "Запасна модель",
+            cache: "Кеш (Idempotent)",
+            mock: "Mock-провайдер",
+            recorded: "Записана відповідь"
+        };
+
         function setupSpace(data) {
             document.getElementById('hubTopic').textContent = data.topic;
+            const provBadge = document.getElementById('hubProviderBadge');
+            if (provBadge) provBadge.textContent = PROVIDER_LABELS[data.provider_kind] || `Провайдер: ${data.provider_kind || 'mock'}`;
+            const checksBadge = document.getElementById('hubChecksBadge');
+            if (checksBadge) {
+                const checksList = Array.isArray(data.checks) && data.checks.length ? data.checks.join(' · ') : 'schema · rules · content';
+                checksBadge.textContent = `Перевірено: ${checksList}`;
+            }
+            const insuffBanner = document.getElementById('insufficientDataBanner');
+            const insuffText = document.getElementById('insufficientDataText');
+            if (insuffBanner && insuffText) {
+                if (data.summary && data.summary.insufficient_data) {
+                    insuffText.textContent = data.summary.missing_info || "Додайте більше деталей або повний фрагмент лекції.";
+                    insuffBanner.classList.remove('hidden');
+                } else {
+                    insuffBanner.classList.add('hidden');
+                }
+            }
             document.getElementById('hubCardBadge').textContent = `${data.flashcards.length} карток`;
             document.getElementById('hubQuizBadge').textContent = `${data.quiz.length} питань`;
             const tfLen = (data.true_false && data.true_false.length) ? data.true_false.length : (data.quiz ? data.quiz.length : 0);
