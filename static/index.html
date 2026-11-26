@@ -75,12 +75,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </button>
-                <div id="historyDropdown" class="hidden absolute right-0 mt-2 w-72 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-900/10 dark:border-white/12 shadow-2xl p-3 space-y-2 z-50">
+                <div id="historyDropdown" onclick="event.stopPropagation()" class="hidden absolute right-0 mt-2 w-80 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-900/10 dark:border-white/12 shadow-2xl p-3 space-y-2.5 z-50">
                     <div class="flex items-center justify-between px-1">
                         <span class="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Останні сесії</span>
                         <span id="historyCount" class="text-[10px] font-mono text-indigo-500 dark:text-sky-400">0</span>
                     </div>
-                    <div id="historyList" class="space-y-1 max-h-56 overflow-y-auto subtle-scroll text-xs">
+                    <input id="historySearchInput" type="text" oninput="renderHistoryList()" placeholder="Пошук за темою..." class="w-full px-3 py-1.5 rounded-xl bg-slate-900/5 dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-400 placeholder:text-slate-400">
+                    <div id="historyList" class="space-y-1 max-h-64 overflow-y-auto subtle-scroll text-xs">
                         <p class="text-slate-400 px-2 py-3 text-center">Поки що немає сесій</p>
                     </div>
                 </div>
@@ -352,21 +353,48 @@
                     </div>
                 </div>
 
-                <!-- CARD 5: AI LECTURE CHAT -->
-                <div role="button" tabindex="0" aria-label="Відкрити чат з AI по конспекту" onclick="showView('chat')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showView('chat');}" class="apple-card bevel-card rounded-[28px] p-5 sm:p-6 sm:col-span-2 flex items-center justify-between gap-4 hover:-translate-y-0.5 cursor-pointer group">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-300 group-hover:scale-110 transition-transform shrink-0">
+                <!-- CARD 5: TRUE / FALSE SPRINT -->
+                <div role="button" tabindex="0" aria-label="Відкрити режим Правда чи Пастка" onclick="showView('trap')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showView('trap');}" class="apple-card bevel-card rounded-[28px] p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:-translate-y-1 cursor-pointer group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 dark:text-rose-300 group-hover:scale-110 transition-transform shadow-inner">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-rose-600 dark:text-rose-400 font-bold">Швидкий спринт</span>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 group-hover:text-rose-500 dark:group-hover:text-rose-300 transition-colors">Правда чи Пастка</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                            Швидке виявлення істинних тверджень та підступних екзаменаційних підмін у формулах і правилах.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-900/10 dark:border-white/[0.08] flex items-center justify-between">
+                        <span id="hubTrapBadge" class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">6 тверджень</span>
+                        <span class="text-rose-500 dark:text-rose-400 font-bold text-sm group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
+                </div>
+
+                <!-- CARD 6: AI LECTURE CHAT -->
+                <div role="button" tabindex="0" aria-label="Відкрити чат з AI по конспекту" onclick="showView('chat')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showView('chat');}" class="apple-card bevel-card rounded-[28px] p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:-translate-y-1 cursor-pointer group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-300 group-hover:scale-110 transition-transform shadow-inner">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                             </svg>
                         </div>
                         <div>
                             <span class="text-[11px] font-mono uppercase tracking-wider text-violet-600 dark:text-violet-400 font-bold">Персональний тьютор</span>
-                            <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">Запитати AI по конспекту</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400">Уточніть складні формули, попросіть простіше пояснення або додатковий приклад за лекцією.</p>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">AI-чат по лекції</h3>
                         </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                            Уточнюйте складні формули, просіть простіші пояснення та приклади прямо за матеріалом.
+                        </p>
                     </div>
-                    <span class="text-violet-600 dark:text-violet-400 font-bold text-base group-hover:translate-x-1 transition-transform shrink-0">➔</span>
+                    <div class="pt-4 border-t border-slate-900/10 dark:border-white/[0.08] flex items-center justify-between">
+                        <span class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">Живий діалог</span>
+                        <span class="text-violet-600 dark:text-violet-400 font-bold text-sm group-hover:translate-x-1 transition-transform">➔</span>
+                    </div>
                 </div>
 
             </div>
@@ -742,6 +770,81 @@
 
         </section>
 
+
+        <!-- ========================================================== -->
+        <!-- VIEW 8: TRUE / FALSE SPRINT (ПРАВДА ЧИ ПАСТКА)             -->
+        <!-- ========================================================== -->
+        <section id="viewTrap" class="view-section hidden max-w-lg mx-auto w-full space-y-5 my-auto text-center">
+
+            <div class="flex items-center justify-between text-xs">
+                <button type="button" onclick="showView('hub')" class="btn-tap font-medium px-3.5 py-1.5 rounded-xl bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 border border-slate-900/10 dark:border-white/10">
+                    ← Меню
+                </button>
+                <div class="flex items-center space-x-3 font-mono">
+                    <span id="trapNumBadge" class="text-slate-500 dark:text-slate-400">1 з 6</span>
+                    <span class="text-slate-300 dark:text-slate-600">|</span>
+                    <span id="trapScoreBadge" class="text-emerald-600 dark:text-emerald-400 font-bold">Точно: 0</span>
+                </div>
+            </div>
+
+            <div id="trapProgressBar" class="w-full flex h-1.5 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-900 border border-slate-900/5 dark:border-white/10 gap-1 p-0.5"></div>
+
+            <!-- Active Statement Card -->
+            <div id="trapActiveCard" class="apple-card bevel-card rounded-[28px] p-6 sm:p-8 space-y-5 text-left transition-all duration-200">
+                <div class="flex items-center justify-between">
+                    <span class="px-3 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-wider bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-semibold">
+                        Правда чи Пастка?
+                    </span>
+                    <span class="text-[11px] font-mono text-slate-400">1 / 2 або свайп</span>
+                </div>
+
+                <p id="trapStatementText" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed py-2">
+                    Твердження для перевірки
+                </p>
+
+                <div id="trapFeedbackBox" class="hidden p-4 rounded-2xl text-xs space-y-1">
+                    <div id="trapFeedbackTitle" class="font-bold"></div>
+                    <p id="trapFeedbackText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="trapActionRow" class="flex items-center space-x-3">
+                <button id="btnTrapFalse" type="button" onclick="answerTrap(false)" class="btn-tap flex-1 py-3.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 dark:bg-rose-950/45 dark:hover:bg-rose-950/75 border border-rose-500/35 text-rose-700 dark:text-rose-200 font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2">
+                    <span>✕</span>
+                    <span>Пастка (1)</span>
+                </button>
+                <button id="btnTrapTrue" type="button" onclick="answerTrap(true)" class="btn-tap flex-1 py-3.5 px-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/45 dark:hover:bg-emerald-950/75 border border-emerald-500/35 text-emerald-700 dark:text-emerald-200 font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2">
+                    <span>✓</span>
+                    <span>Правда (2)</span>
+                </button>
+            </div>
+
+            <div id="trapNextRow" class="hidden">
+                <button type="button" onclick="nextTrap()" class="btn-tap w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-semibold text-xs sm:text-sm shadow-lg">
+                    Наступне твердження ➔
+                </button>
+            </div>
+
+            <!-- Victory / Summary Box -->
+            <div id="trapFinishedBox" class="hidden apple-card bevel-card rounded-[28px] p-8 text-center space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-2xl">
+                    ⚖️
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Спринт завершено!</h3>
+                <p id="trapResultText" class="text-sm text-slate-600 dark:text-slate-300">Точність: 6 з 6 (100%)</p>
+                <div class="flex flex-col sm:flex-row flex-wrap gap-3 justify-center pt-2">
+                    <button id="btnTrapRetryMistakes" type="button" onclick="retryTrapMistakes()" class="hidden btn-tap px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-800 dark:text-amber-200 text-xs font-bold">
+                        ↺ Робота над помилками
+                    </button>
+                    <button type="button" onclick="startTrap()" class="btn-tap px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 text-xs font-semibold shadow-lg">
+                        ↻ Пройти ще раз
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
     </main>
 
     <!-- GENERATION SETTINGS MODAL -->
@@ -1026,7 +1129,7 @@
                 clearInterval(matchTimerInterval);
                 matchTimerInterval = null;
             }
-            const views = ['home', 'hub', 'cards', 'quiz', 'summary', 'match', 'chat'];
+            const views = ['home', 'hub', 'cards', 'quiz', 'summary', 'match', 'chat', 'trap'];
             views.forEach(v => {
                 const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
                 if (el) el.classList.toggle('hidden', v !== name);
@@ -1039,6 +1142,7 @@
             if (name === 'quiz') renderQuiz();
             if (name === 'match') startMatch();
             if (name === 'chat') renderChat();
+            if (name === 'trap') startTrap();
         }
 
         function setEngine(engine) {
@@ -1184,6 +1288,8 @@
             document.getElementById('hubTopic').textContent = data.topic;
             document.getElementById('hubCardBadge').textContent = `${data.flashcards.length} карток`;
             document.getElementById('hubQuizBadge').textContent = `${data.quiz.length} питань`;
+            const tfLen = (data.true_false && data.true_false.length) ? data.true_false.length : (data.quiz ? data.quiz.length : 0);
+            document.getElementById('hubTrapBadge').textContent = `${tfLen} тверджень`;
 
             activeDeck = [...data.flashcards];
             cardIdx = 0;
@@ -1221,27 +1327,96 @@
         }
 
         // History Popover
+        let cachedHistoryItems = [];
+
         async function loadHistory() {
             try {
                 const res = await fetch('/api/history');
                 if (!res.ok) return;
-                const items = await res.json();
-                document.getElementById('historyCount').textContent = items.length;
-                const list = document.getElementById('historyList');
-                if (!items.length) return;
-                list.innerHTML = '';
-                items.slice(0, 6).forEach(s => {
-                    const row = document.createElement('button');
-                    row.type = 'button';
-                    row.className = 'w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-900/5 dark:hover:bg-white/[0.06] transition flex items-center justify-between';
-                    const left = document.createElement('div');
-                    left.className = 'truncate pr-2';
-                    left.innerHTML = `<div class="font-medium text-slate-800 dark:text-slate-200 truncate"></div><div class="text-[10px] font-mono text-slate-400">${s.card_count} карток · ${s.quiz_count} тестів</div>`;
-                    left.firstChild.textContent = s.topic;
-                    row.appendChild(left);
-                    row.onclick = () => openHistorySession(s.id, s.topic);
-                    list.appendChild(row);
-                });
+                cachedHistoryItems = await res.json();
+                document.getElementById('historyCount').textContent = cachedHistoryItems.length;
+                renderHistoryList();
+            } catch (e) {}
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('historyList');
+            const q = (document.getElementById('historySearchInput')?.value || '').trim().toLowerCase();
+            const filtered = q
+                ? cachedHistoryItems.filter(s => (s.topic || '').toLowerCase().includes(q))
+                : cachedHistoryItems;
+
+            if (!filtered.length) {
+                list.innerHTML = `<p class="text-slate-400 px-2 py-3 text-center">${q ? 'Нічого не знайдено' : 'Поки що немає сесій'}</p>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            filtered.forEach(s => {
+                const row = document.createElement('div');
+                row.className = 'w-full px-2.5 py-2 rounded-xl hover:bg-slate-900/5 dark:hover:bg-white/[0.06] transition flex items-center justify-between gap-2 group cursor-pointer';
+                row.onclick = () => openHistorySession(s.id, s.topic);
+
+                const left = document.createElement('div');
+                left.className = 'min-w-0 flex-1';
+                const title = document.createElement('div');
+                title.className = 'font-medium text-slate-800 dark:text-slate-200 truncate flex items-center space-x-1';
+                if (s.pinned) {
+                    const pinTag = document.createElement('span');
+                    pinTag.className = 'text-[10px] shrink-0';
+                    pinTag.textContent = '📌';
+                    title.appendChild(pinTag);
+                }
+                const titleTxt = document.createElement('span');
+                titleTxt.className = 'truncate';
+                titleTxt.textContent = s.topic;
+                title.appendChild(titleTxt);
+
+                const sub = document.createElement('div');
+                sub.className = 'text-[10px] font-mono text-slate-400';
+                sub.textContent = `${s.card_count} карток · ${s.quiz_count} тестів`;
+                left.appendChild(title);
+                left.appendChild(sub);
+
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center space-x-1 shrink-0 opacity-70 group-hover:opacity-100';
+
+                const pinBtn = document.createElement('button');
+                pinBtn.type = 'button';
+                pinBtn.title = s.pinned ? 'Відкріпити' : 'Закріпити';
+                pinBtn.className = 'p-1 rounded-lg hover:bg-indigo-500/15 text-[11px] transition ' + (s.pinned ? 'opacity-100' : 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100');
+                pinBtn.textContent = '📌';
+                pinBtn.onclick = (e) => { e.stopPropagation(); togglePinHistory(s.id); };
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.title = 'Видалити сесію';
+                delBtn.className = 'p-1 rounded-lg hover:bg-rose-500/15 text-[11px] text-slate-400 hover:text-rose-500 transition';
+                delBtn.textContent = '🗑️';
+                delBtn.onclick = (e) => { e.stopPropagation(); deleteHistoryItem(s.id); };
+
+                actions.appendChild(pinBtn);
+                actions.appendChild(delBtn);
+                row.appendChild(left);
+                row.appendChild(actions);
+                list.appendChild(row);
+            });
+        }
+
+        async function togglePinHistory(sessionId) {
+            try {
+                const res = await fetch(`/api/history/${encodeURIComponent(sessionId)}/pin`, { method: 'PATCH' });
+                if (!res.ok) return;
+                await loadHistory();
+            } catch (e) {}
+        }
+
+        async function deleteHistoryItem(sessionId) {
+            try {
+                const res = await fetch(`/api/history/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+                if (!res.ok) return;
+                await loadHistory();
+                showToast('Сесію видалено', '🗑️');
             } catch (e) {}
         }
 
@@ -2033,6 +2208,136 @@
             }
         }
 
+        // True / False Sprint Logic
+        let trapDeck = [];
+        let trapIdx = 0;
+        let trapAnswers = {};
+
+        function buildTrapFallbackFromQuiz(quizList) {
+            return (quizList || []).map((q, i) => {
+                const makeTrue = i % 2 === 0;
+                const optIdx = makeTrue ? q.correct_index : (q.correct_index + 1) % q.options.length;
+                return {
+                    id: i + 1,
+                    statement: `${q.question} — Відповідь: «${q.options[optIdx]}».`,
+                    is_true: makeTrue,
+                    correction: q.explanation
+                };
+            });
+        }
+
+        function startTrap(customPool = null) {
+            if (!currentKit) return;
+            const rawPool = (currentKit.true_false && currentKit.true_false.length)
+                ? currentKit.true_false
+                : buildTrapFallbackFromQuiz(currentKit.quiz);
+            trapDeck = customPool && customPool.length ? [...customPool] : shuffleArr(rawPool);
+            trapIdx = 0;
+            trapAnswers = {};
+            document.getElementById('trapFinishedBox').classList.add('hidden');
+            document.getElementById('trapActiveCard').classList.remove('hidden');
+            renderTrap();
+        }
+
+        function renderTrap() {
+            if (!trapDeck.length) return;
+            const item = trapDeck[trapIdx];
+            const total = trapDeck.length;
+            const answered = trapAnswers[trapIdx] !== undefined;
+
+            document.getElementById('trapNumBadge').textContent = `${trapIdx + 1} з ${total}`;
+            let correct = 0;
+            for (const i in trapAnswers) {
+                if (trapAnswers[i] === trapDeck[i].is_true) correct++;
+            }
+            document.getElementById('trapScoreBadge').textContent = `Точно: ${correct}`;
+
+            const card = document.getElementById('trapActiveCard');
+            card.classList.remove('ring-2', 'ring-emerald-500', 'ring-rose-500');
+            document.getElementById('trapStatementText').textContent = item.statement;
+
+            const fb = document.getElementById('trapFeedbackBox');
+            const actionRow = document.getElementById('trapActionRow');
+            const nextRow = document.getElementById('trapNextRow');
+
+            if (answered) {
+                const ok = trapAnswers[trapIdx] === item.is_true;
+                card.classList.add('ring-2', ok ? 'ring-emerald-500' : 'ring-rose-500');
+                fb.className = ok
+                    ? 'p-4 rounded-2xl text-xs space-y-1 bg-emerald-500/10 dark:bg-emerald-950/45 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200'
+                    : 'p-4 rounded-2xl text-xs space-y-1 bg-rose-500/10 dark:bg-rose-950/45 border border-rose-500/40 text-rose-800 dark:text-rose-200';
+                document.getElementById('trapFeedbackTitle').textContent = ok
+                    ? (item.is_true ? '✓ Вірно! Це правда' : '✓ Вірно! Ви розпізнали пастку')
+                    : (item.is_true ? '✕ Помилка — це твердження істинне' : '✕ Попалися в пастку!');
+                document.getElementById('trapFeedbackText').textContent = item.correction;
+                fb.classList.remove('hidden');
+                actionRow.classList.add('hidden');
+                nextRow.classList.remove('hidden');
+            } else {
+                fb.classList.add('hidden');
+                actionRow.classList.remove('hidden');
+                nextRow.classList.add('hidden');
+            }
+
+            const bar = document.getElementById('trapProgressBar');
+            bar.innerHTML = '';
+            trapDeck.forEach((tItem, idx) => {
+                const seg = document.createElement('div');
+                seg.className = 'flex-1 h-full rounded-full transition-all duration-300 ';
+                const a = trapAnswers[idx];
+                if (a !== undefined) {
+                    seg.className += a === tItem.is_true ? 'bg-emerald-400' : 'bg-rose-400';
+                } else if (idx === trapIdx) {
+                    seg.className += 'bg-rose-500 dark:bg-white animate-pulse';
+                } else {
+                    seg.className += 'bg-slate-300 dark:bg-white/10';
+                }
+                bar.appendChild(seg);
+            });
+
+            renderMath(card);
+        }
+
+        function answerTrap(val) {
+            if (!trapDeck.length || trapAnswers[trapIdx] !== undefined) return;
+            trapAnswers[trapIdx] = val;
+            playSound(val === trapDeck[trapIdx].is_true ? 'mastered' : 'review');
+            renderTrap();
+        }
+
+        function nextTrap() {
+            if (trapIdx < trapDeck.length - 1) {
+                trapIdx++;
+                renderTrap();
+            } else {
+                const total = trapDeck.length;
+                let correct = 0;
+                const wrong = [];
+                trapDeck.forEach((item, i) => {
+                    if (trapAnswers[i] === item.is_true) correct++;
+                    else wrong.push(item);
+                });
+                const pct = Math.round((correct / total) * 100);
+                document.getElementById('trapResultText').textContent = `Точність: ${correct} з ${total} (${pct}%)`;
+                const retryBtn = document.getElementById('btnTrapRetryMistakes');
+                if (wrong.length) {
+                    retryBtn.classList.remove('hidden');
+                    retryBtn.textContent = `↺ Робота над помилками (${wrong.length})`;
+                } else {
+                    retryBtn.classList.add('hidden');
+                }
+                document.getElementById('trapActiveCard').classList.add('hidden');
+                document.getElementById('trapActionRow').classList.add('hidden');
+                document.getElementById('trapNextRow').classList.add('hidden');
+                document.getElementById('trapFinishedBox').classList.remove('hidden');
+            }
+        }
+
+        function retryTrapMistakes() {
+            const wrong = trapDeck.filter((item, i) => trapAnswers[i] !== item.is_true);
+            if (wrong.length) startTrap(wrong);
+        }
+
         function copySummaryText(e) {
             if (e) triggerRipple(e, e.currentTarget);
             if (!currentKit) return;
@@ -2067,6 +2372,15 @@
                     nextQuestion();
                 } else if (e.code === 'ArrowLeft') {
                     prevQuestion();
+                }
+            } else if (currentView === 'trap' && trapDeck.length) {
+                if (e.key === '1' || e.code === 'ArrowLeft') {
+                    answerTrap(false);
+                } else if (e.key === '2' || e.code === 'ArrowRight') {
+                    answerTrap(true);
+                } else if ((e.code === 'Space' || e.code === 'Enter') && trapAnswers[trapIdx] !== undefined) {
+                    e.preventDefault();
+                    nextTrap();
                 }
             }
         });

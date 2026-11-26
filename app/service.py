@@ -63,7 +63,8 @@ class StudyService:
             topic=req.topic,
             summary=validated_parts["summary"],
             flashcards=validated_parts["flashcards"],
-            quiz=validated_parts["quiz"]
+            quiz=validated_parts["quiz"],
+            true_false=validated_parts.get("true_false", [])
         )
 
         # 5. Persist to storage

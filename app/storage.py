@@ -30,7 +30,8 @@ class Storage:
                     quiz_count INTEGER NOT NULL,
                     data_json TEXT NOT NULL,
                     raw_text TEXT DEFAULT '',
-                    chat_json TEXT DEFAULT '[]'
+                    chat_json TEXT DEFAULT '[]',
+                    pinned INTEGER DEFAULT 0
                 )
             """)
             cols = [r[1] for r in cursor.execute("PRAGMA table_info(sessions)").fetchall()]
@@ -38,6 +39,8 @@ class Storage:
                 cursor.execute("ALTER TABLE sessions ADD COLUMN raw_text TEXT DEFAULT ''")
             if "chat_json" not in cols:
                 cursor.execute("ALTER TABLE sessions ADD COLUMN chat_json TEXT DEFAULT '[]'")
+            if "pinned" not in cols:
+                cursor.execute("ALTER TABLE sessions ADD COLUMN pinned INTEGER DEFAULT 0")
             conn.commit()
             logger.info("Storage initialized successfully")
 
@@ -113,13 +116,13 @@ class Storage:
             conn.execute("UPDATE sessions SET chat_json = '[]' WHERE id = ?", (session_id,))
             conn.commit()
 
-    def list_recent_sessions(self, limit: int = 10) -> List[SessionRecord]:
+    def list_recent_sessions(self, limit: int = 30) -> List[SessionRecord]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT id, created_at, topic, text_length, card_count, quiz_count
+                SELECT id, created_at, topic, text_length, card_count, quiz_count, COALESCE(pinned, 0)
                 FROM sessions
-                ORDER BY created_at DESC
+                ORDER BY COALESCE(pinned, 0) DESC, created_at DESC
                 LIMIT ?
             """, (limit,))
             rows = cursor.fetchall()
@@ -130,7 +133,26 @@ class Storage:
                     topic=r[2],
                     text_length=r[3],
                     card_count=r[4],
-                    quiz_count=r[5]
+                    quiz_count=r[5],
+                    pinned=bool(r[6])
                 )
                 for r in rows
             ]
+
+    def delete_session(self, session_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            conn.commit()
+            return cur.rowcount > 0
+
+    def toggle_pin_session(self, session_id: str) -> Optional[bool]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COALESCE(pinned, 0) FROM sessions WHERE id = ?", (session_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            new_val = 0 if row[0] else 1
+            cursor.execute("UPDATE sessions SET pinned = ? WHERE id = ?", (new_val, session_id))
+            conn.commit()
+            return bool(new_val)

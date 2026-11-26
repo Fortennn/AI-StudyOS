@@ -187,7 +187,44 @@ async def generate_kit(payload: StudyRequest):
 @app.get("/api/history", response_model=List[SessionRecord])
 async def get_history():
     """Lists recent study sessions from storage."""
-    return storage.list_recent_sessions(limit=10)
+    return storage.list_recent_sessions(limit=30)
+
+@app.delete("/api/history/{session_id}")
+async def delete_history_session(session_id: str):
+    """Deletes a saved study session by ID."""
+    req_id = request_id_ctx.get()
+    if not storage.delete_session(session_id):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    kind="not_found",
+                    message="Сесію не знайдено.",
+                    retryable=False,
+                    request_id=req_id
+                )
+            ).model_dump()
+        )
+    return {"status": "ok", "id": session_id}
+
+@app.patch("/api/history/{session_id}/pin")
+async def pin_history_session(session_id: str):
+    """Toggles pinned state of a saved study session."""
+    req_id = request_id_ctx.get()
+    pinned = storage.toggle_pin_session(session_id)
+    if pinned is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    kind="not_found",
+                    message="Сесію не знайдено.",
+                    retryable=False,
+                    request_id=req_id
+                )
+            ).model_dump()
+        )
+    return {"status": "ok", "id": session_id, "pinned": pinned}
 
 @app.get("/api/history/{session_id}", response_model=StudyKitResponse)
 async def get_history_session(session_id: str):

@@ -1,6 +1,6 @@
 import re
 from typing import Dict, Any, List
-from app.models import StudySummary, FlashcardItem, QuizItem
+from app.models import StudySummary, FlashcardItem, QuizItem, TrueFalseItem
 from app.telemetry import logger
 from app.providers.base import ProviderError
 
@@ -73,11 +73,17 @@ class StudyOrchestrator:
                 QuizItem(**item)
                 for item in raw_data.get("quiz", [])
             ]
-            
+
+            true_false = [
+                TrueFalseItem(**item)
+                for item in raw_data.get("true_false", [])
+            ]
+
             return {
                 "summary": summary,
                 "flashcards": cards,
-                "quiz": quiz
+                "quiz": quiz,
+                "true_false": true_false
             }
         except Exception as e:
             logger.error(f"Orchestration boundary validation failed: {str(e)}")

@@ -28,6 +28,12 @@ class QuizItem(BaseModel):
     correct_index: int = Field(..., ge=0, le=3, description="Індекс правильної відповіді (0..3)")
     explanation: str = Field(..., description="Коротке пояснення правильної відповіді")
 
+class TrueFalseItem(BaseModel):
+    id: int = Field(..., description="Порядковий номер твердження")
+    statement: str = Field(..., description="Твердження за матеріалом лекції (істинне або з пасткою)")
+    is_true: bool = Field(..., description="Чи є твердження істинним")
+    correction: str = Field(..., description="Коротке пояснення: чому це правда або в чому саме пастка")
+
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
     text: str = Field(..., min_length=1, max_length=16000)
@@ -39,6 +45,7 @@ class StudyKitResponse(BaseModel):
     summary: StudySummary
     flashcards: List[FlashcardItem]
     quiz: List[QuizItem]
+    true_false: List[TrueFalseItem] = Field(default_factory=list)
     chat_history: List[ChatMessage] = Field(default_factory=list)
 
 # --- Error Contract ---
@@ -70,6 +77,7 @@ class SessionRecord(BaseModel):
     text_length: int
     card_count: int
     quiz_count: int
+    pinned: bool = False
 
 # --- Lecture Chat Models ---
 class ChatRequest(BaseModel):
