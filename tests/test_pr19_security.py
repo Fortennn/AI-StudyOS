@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -23,8 +24,9 @@ def test_openapi_snapshot_matches_current_app():
 
 def test_cross_user_history_isolation(client):
     """Another user cannot read, pin, or delete a session owned by a different user."""
+    suffix = uuid.uuid4().hex[:8]
     # User A registers and creates a session
-    r_reg_a = client.post("/api/auth/register", json={"username": "alice_pr19", "password": "secret123"})
+    r_reg_a = client.post("/api/auth/register", json={"username": f"alice_{suffix}", "password": "secret123"})
     assert r_reg_a.status_code == 200
 
     gen = client.post(
@@ -36,7 +38,7 @@ def test_cross_user_history_isolation(client):
 
     # Switch cookie to User B
     client.post("/api/auth/logout")
-    r_reg_b = client.post("/api/auth/register", json={"username": "bob_pr19", "password": "secret123"})
+    r_reg_b = client.post("/api/auth/register", json={"username": f"bob_{suffix}", "password": "secret123"})
     assert r_reg_b.status_code == 200
 
     assert client.get(f"/api/history/{alice_sid}").status_code == 404

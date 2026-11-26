@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+data/*.db
+data/.auth_secret
+data/budget*.json
+logs/
+tests/
+eval/
+docs/

@@ -42,9 +42,15 @@ class Settings(BaseModel):
     cache_ttl_s: int = Field(default=3600)
 
     # Storage and logs
+    data_dir: str = Field(default="data")
     db_path: str = Field(default="data/study.db")
     log_file: str = Field(default="logs/app.log")
     log_level: str = Field(default="INFO")
+
+    # Deployment & Public Access Guardrails (PR20)
+    demo_token: str = Field(default="")
+    allowed_origins: str = Field(default="")
+    git_commit: str = Field(default="local")
 
     @field_validator("llm_api_key")
     @classmethod
@@ -56,10 +62,11 @@ class Settings(BaseModel):
 
 def get_settings() -> Settings:
     """Reads settings from environment variables with sensible defaults."""
+    data_dir = os.getenv("DATA_DIR", "data")
     return Settings(
         app_env=os.getenv("APP_ENV", "development"),
         app_version=os.getenv("APP_VERSION", "0.1.0"),
-        app_port=int(os.getenv("APP_PORT", "8000")),
+        app_port=int(os.getenv("PORT", os.getenv("APP_PORT", "8000"))),
         llm_provider=os.getenv("LLM_PROVIDER", "mock").lower(),
         llm_model=os.getenv("LLM_MODEL", "mock-study-flash"),
         llm_api_key=os.getenv("LLM_API_KEY", ""),
@@ -67,14 +74,15 @@ def get_settings() -> Settings:
         mock_failure_rate=float(os.getenv("MOCK_FAILURE_RATE", "0.0")),
         mock_failure_kind=os.getenv("MOCK_FAILURE_KIND", "none").lower(),
         mock_delay_ms=int(os.getenv("MOCK_DELAY_MS", "50")),
-        db_path=os.getenv("DB_PATH", "data/study.db"),
+        data_dir=data_dir,
+        db_path=os.getenv("DB_PATH", f"{data_dir}/study.db"),
         log_file=os.getenv("LOG_FILE", "logs/app.log"),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         record_mode=os.getenv("RECORD_MODE", "replay").lower(),
         recordings_dir=os.getenv("RECORDINGS_DIR", "tests/recordings"),
         budget_daily_usd=float(os.getenv("BUDGET_DAILY_USD", "5.0")),
         budget_daily_calls=int(os.getenv("BUDGET_DAILY_CALLS", "500")),
-        budget_file=os.getenv("BUDGET_FILE", "data/budget.json"),
+        budget_file=os.getenv("BUDGET_FILE", f"{data_dir}/budget.json"),
         ai_enabled=os.getenv("AI_ENABLED", "1") not in ("0", "false", "False", "no"),
         llm_total_deadline_s=int(os.getenv("LLM_TOTAL_DEADLINE_S", "45")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "2")),
@@ -83,4 +91,7 @@ def get_settings() -> Settings:
         breaker_threshold=int(os.getenv("BREAKER_THRESHOLD", "3")),
         breaker_recovery_s=int(os.getenv("BREAKER_RECOVERY_S", "30")),
         cache_ttl_s=int(os.getenv("CACHE_TTL_S", "3600")),
+        demo_token=os.getenv("DEMO_TOKEN", ""),
+        allowed_origins=os.getenv("ALLOWED_ORIGINS", ""),
+        git_commit=os.getenv("RENDER_GIT_COMMIT", os.getenv("GIT_COMMIT", "local")),
     )

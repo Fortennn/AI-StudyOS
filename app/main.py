@@ -1,10 +1,12 @@
 import os
+import secrets
 import time
 import uuid
 from urllib.parse import urlencode
 from typing import List
 import httpx
 from fastapi import FastAPI, Request, status, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
@@ -43,6 +45,33 @@ app = FastAPI(
     version=settings.app_version,
     description="Інтелектуальний помічник для навчання (Конспект -> Самарі, 3D Картки, Тести)"
 )
+
+if settings.allowed_origins.strip():
+    origins = [o.strip() for o in settings.allowed_origins.split(",") if o.strip() and o.strip() != "*"]
+    if origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "PATCH", "DELETE"],
+            allow_headers=["*"],
+        )
+
+def _require_demo_access(request: Request) -> None:
+    expected = (settings.demo_token or "").strip()
+    if not expected:
+        return
+    provided = (request.headers.get("X-Demo-Token") or "").strip()
+    if not provided:
+        auth_hdr = (request.headers.get("Authorization") or "").strip()
+        if auth_hdr.lower().startswith("bearer "):
+            provided = auth_hdr[7:].strip()
+    if not provided or not secrets.compare_digest(provided, expected):
+        raise ProviderError(
+            kind="auth",
+            message="Доступ до AI-маршрутів обмежено: надайте дійсний X-Demo-Token.",
+            retryable=False,
+        )
 
 # Request ID & Logging Middleware
 @app.middleware("http")
@@ -155,13 +184,16 @@ async def get_health():
                 **gateway.breaker.status(),
             },
             "ai_enabled": settings.ai_enabled,
+            "git_commit": settings.git_commit[:12],
+            "prompt_version": "v1",
         },
         uptime_s=uptime
     )
 
 @app.post("/api/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(request: Request, file: UploadFile = File(...)):
     """Extracts text from uploaded PDF, DOCX, or TXT file."""
+    _require_demo_access(request)
     req_id = request_id_ctx.get()
     logger.info(f"Received file upload: '{file.filename}' (content_type: {file.content_type})")
     
@@ -385,6 +417,7 @@ async def get_ui_config():
 @app.post("/api/generate", response_model=StudyKitResponse)
 async def generate_kit(payload: StudyRequest, request: Request):
     """Main scenario: transforms study notes into summary, flashcards and quiz."""
+    _require_demo_access(request)
     req_id = request_id_ctx.get()
     uid = _get_current_user_id(request)
     client_key = uid or (request.client.host if request.client else "anon")
@@ -477,6 +510,7 @@ async def get_history_session(session_id: str, request: Request):
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_with_lecture(payload: ChatRequest, request: Request):
     """Follow-up Q&A grounded in the loaded lecture material."""
+    _require_demo_access(request)
     req_id = request_id_ctx.get()
     uid = _get_current_user_id(request)
     return await study_service.answer_lecture_question(payload, req_id=req_id, user_id=uid)
