@@ -33,9 +33,9 @@ class GeminiProvider(LLMProvider):
     ]
 
     def __init__(self, api_key: str, model: str = "gemini-3-flash-preview", timeout_s: int = 35):
-        self.api_key = api_key
+        self.api_key = (api_key or "").strip()
         # Map deprecated or chronically slow/hanging models to fast stable ones
-        m = (model or "gemini-3-flash-preview").replace("models/", "")
+        m = (model or "gemini-3-flash-preview").strip().replace("models/", "")
         if m in ["gemini-2.5-flash", "gemini-2.5-flash-preview", "gemini-1.5-flash", "gemini-3.5-flash"]:
             m = "gemini-3-flash-preview"
         self.model = m

@@ -22,8 +22,9 @@ def test_openapi_snapshot_matches_current_app():
     assert saved["components"]["schemas"].keys() == current["components"]["schemas"].keys()
 
 
-def test_cross_user_history_isolation(client):
+def test_cross_user_history_isolation(client, monkeypatch):
     """Another user cannot read, pin, or delete a session owned by a different user."""
+    monkeypatch.setattr(study_service.gateway, "provider", MockProvider(delay_ms=0))
     suffix = uuid.uuid4().hex[:8]
     # User A registers and creates a session
     r_reg_a = client.post("/api/auth/register", json={"username": f"alice_{suffix}", "password": "secret123"})
